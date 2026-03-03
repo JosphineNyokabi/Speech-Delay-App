@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Delay Screening Tool</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+
+    <h1>Child Speech Delay Screening</h1>
+    <p class="subtitle">Strathmore University — MSc IT Research</p>
+
+    <!-- FORM SECTION -->
+    <div id="form-section">
+
+        <div class="question">
+            <label>Child's age in months</label>
+            <input type="number" id="child_age_months"
+                   min="12" max="36" placeholder="e.g. 24">
+        </div>
+
+        <div class="question">
+            <label>How many words can your child say?</label>
+            <select id="word_count_range">
+                <option value="">-- Select --</option>
+                <option value="Below 5 words">Below 5 words</option>
+                <option value="5 - 20">5 to 20 words</option>
+                <option value="20 - 50">20 to 50 words</option>
+                <option value="50 -100">50 to 100 words</option>
+                <option value="100 - 200">100 to 200 words</option>
+                <option value="Over 200">Over 200 words</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>Does your child combine two words?
+                   (e.g. "more milk")</label>
+            <select id="combines_words">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>Does your child respond when you
+                   call their name?</label>
+            <select id="responds_to_name">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>Screen time on weekdays</label>
+            <select id="screen_weekday">
+                <option value="Less than 30 min">Less than 30 minutes</option>
+                <option value="1 hour">1 hour</option>
+                <option value="2 hours">2 hours</option>
+                <option value="3 hours">3 hours</option>
+                <option value="4 hours">4 hours</option>
+                <option value="More than 4 hours">More than 4 hours</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>Screen time on weekends</label>
+            <select id="screen_weekend">
+                <option value="Less than 30 min">Less than 30 minutes</option>
+                <option value="1 hour">1 hour</option>
+                <option value="2 hours">2 hours</option>
+                <option value="3 hours">3 hours</option>
+                <option value="4 hours">4 hours</option>
+                <option value="More than 4 hours">More than 4 hours</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>At what age (months) was your child
+                   first introduced to screens?</label>
+            <input type="number" id="screen_intro_age"
+                   min="0" max="36" placeholder="e.g. 6">
+        </div>
+
+        <div class="question">
+            <label>How much time do you spend talking,
+                   reading, or singing to your child daily?</label>
+            <select id="verbal_interaction">
+                <option value="Less than 15 min">Less than 15 minutes</option>
+                <option value="15 min - 30 min">15 to 30 minutes</option>
+                <option value="30 min - 1 hour">30 minutes to 1 hour</option>
+                <option value="Over 1 hour">Over 1 hour</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>Do you watch screens together
+                   with your child?</label>
+            <select id="co_view">
+                <option value="Never">Never</option>
+                <option value="Rarely">Rarely</option>
+                <option value="Sometimes">Sometimes</option>
+                <option value="Always">Always</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>Has a teacher or health worker ever raised
+                   concern about your child's speech?</label>
+            <select id="concern_raised">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>Child's birth position
+                   (1 = first born)</label>
+            <input type="number" id="birth_order"
+                   min="1" max="10" placeholder="e.g. 1">
+        </div>
+
+        <div class="question">
+            <label>How many children under 5
+                   are in your household?</label>
+            <input type="number" id="num_children_u5"
+                   min="1" max="10" placeholder="e.g. 2">
+        </div>
+
+        <div class="question">
+            <label>Your highest education level</label>
+            <select id="education">
+                <option value="Primary">Primary</option>
+                <option value="Secondary">Secondary</option>
+                <option value="College/University">
+                    College / University</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>Child's gender</label>
+            <select id="child_gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <label>Monthly household income in KES
+                   (optional)</label>
+            <input type="number" id="income"
+                   placeholder="e.g. 35000">
+        </div>
+
+        <button onclick="submitForm()">Check Risk Level</button>
+
+    </div>
+    <!-- end form-section -->
+
+    <!-- RESULT SECTION - hidden until form submitted -->
+    <div id="result-section" style="display:none">
+        <div id="result-box">
+
+            <h2 id="risk-level"></h2>
+            <p id="probability"></p>
+
+            <hr>
+            <h3>WHO Milestone Checks</h3>
+            <p id="vocab-status"></p>
+            <p id="combine-status"></p>
+            <p id="respond-status"></p>
+
+            <hr>
+            <h3>Recommendation</h3>
+            <p id="recommendation"></p>
+
+            <hr>
+            <button onclick="resetForm()">
+                Screen Another Child</button>
+
+        </div>
+    </div>
+
+</div>
+<!-- end container -->
+
+<script>
+    async function submitForm() {
+
+        // Collect all answers
+        const child_data = {
+            child_age_months  : parseInt(document.getElementById("child_age_months").value),
+            word_count_range  : document.getElementById("word_count_range").value,
+            combines_words    : document.getElementById("combines_words").value,
+            responds_to_name  : document.getElementById("responds_to_name").value,
+            screen_weekday    : document.getElementById("screen_weekday").value,
+            screen_weekend    : document.getElementById("screen_weekend").value,
+            screen_intro_age  : document.getElementById("screen_intro_age").value,
+            verbal_interaction: document.getElementById("verbal_interaction").value,
+            co_view           : document.getElementById("co_view").value,
+            concern_raised    : document.getElementById("concern_raised").value,
+            birth_order       : parseInt(document.getElementById("birth_order").value),
+            num_children_u5   : parseInt(document.getElementById("num_children_u5").value),
+            education         : document.getElementById("education").value,
+            child_gender      : document.getElementById("child_gender").value,
+            income            : document.getElementById("income").value || null,
+        };
+
+        // Send to Flask and wait for result
+        const response = await fetch("/predict", {
+            method : "POST",
+            headers: { "Content-Type": "application/json" },
+            body   : JSON.stringify(child_data)
+        });
+
+        const result = await response.json();
+
+        // Display risk level with colour
+        const riskEl = document.getElementById("risk-level");
+        riskEl.textContent = result.risk_level;
+        if (result.risk_level === "HIGH RISK") {
+            riskEl.style.color = "firebrick";
+        } else if (result.risk_level === "MODERATE RISK") {
+            riskEl.style.color = "darkorange";
+        } else {
+            riskEl.style.color = "green";
+        }
+
+        // Display all other fields
+        document.getElementById("probability").textContent =
+            "Probability of speech delay: " + result.probability_pct;
+
+        document.getElementById("vocab-status").textContent =
+            "Vocabulary: " + result.milestone_flags.word_status;
+
+        document.getElementById("combine-status").textContent =
+            "Word combining: " +
+            result.milestone_flags.combine_status;
+
+        document.getElementById("respond-status").textContent =
+            "Name response: " +
+            result.milestone_flags.respond_status;
+
+        document.getElementById("recommendation").textContent =
+            result.recommendation;
+
+        // Hide form, show result
+        document.getElementById("form-section").style.display = "none";
+        document.getElementById("result-section").style.display = "block";
+    }
+
+    function resetForm() {
+        document.getElementById("form-section").style.display = "block";
+        document.getElementById("result-section").style.display = "none";
+    }
+</script>
+
+</body>
+</html>
