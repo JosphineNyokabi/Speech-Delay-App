@@ -1,6 +1,5 @@
-```
+numpy
 flask
 pandas
 scikit-learn
-numpy
-```
+
