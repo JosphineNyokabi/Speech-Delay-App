@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,14 +10,42 @@
 <div class="container">
 
     <h1>Child Speech Delay Screening</h1>
+    <p>Answer the questions below about your child. All answers are confidential.</p>
 
     <!-- FORM SECTION -->
     <div id="form-section">
 
+        <!-- ── MEDICAL CONDITION — asked FIRST ── -->
+        <div class="question" style="border-left:4px solid #c8973a; padding-left:12px;">
+            <label>Does your child have any diagnosed medical conditions
+                   or hearing issues?
+                   <span style="font-size:12px; color:#888; font-weight:normal;">
+                   (e.g. autism, hearing loss, cleft palate)</span>
+            </label>
+            <select id="medical_condition" onchange="checkMedical()">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        </div>
+
+        <!-- ── AGE ── -->
         <div class="question">
             <label>Child's age in months</label>
             <input type="number" id="child_age_months"
-                   min="12" max="36" placeholder="e.g. 24">
+                   min="1" max="36" placeholder="e.g. 24"
+                   oninput="checkAge()">
+            <div id="age-warning" style="display:none; margin-top:8px;
+                 background:#fff3cd; border:1px solid #ffc107; border-radius:6px;
+                 padding:10px 14px; font-size:13px; color:#856404; line-height:1.6;">
+                ⚠️ <strong>Age outside screening range.</strong><br>
+                This tool is designed for children aged <strong>12 to 36 months</strong>.
+                Children under 12 months are still in very early development —
+                most children only begin saying recognisable words, responding
+                consistently to their name, and combining sounds after 12 months.
+                A prediction at this age would not be meaningful or clinically valid.<br><br>
+                If you have concerns about your infant's development, please
+                speak to your paediatrician or a speech and language therapist.
+            </div>
         </div>
 
         <div class="question">
@@ -35,7 +63,7 @@
 
         <div class="question">
             <label>Does your child combine two words?
-                   (e.g. "more milk")</label>
+                   (e.g. "more milk", "mama come")</label>
             <select id="combines_words">
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
@@ -43,8 +71,7 @@
         </div>
 
         <div class="question">
-            <label>Does your child respond when you
-                   call their name?</label>
+            <label>Does your child respond when you call their name?</label>
             <select id="responds_to_name">
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
@@ -94,8 +121,7 @@
         </div>
 
         <div class="question">
-            <label>Do you watch screens together
-                   with your child?</label>
+            <label>Do you watch screens together with your child?</label>
             <select id="co_view">
                 <option value="Never">Never</option>
                 <option value="Rarely">Rarely</option>
@@ -114,15 +140,13 @@
         </div>
 
         <div class="question">
-            <label>Child's birth position
-                   (1 = first born)</label>
+            <label>Child's birth position (1 = first born)</label>
             <input type="number" id="birth_order"
                    min="1" max="10" placeholder="e.g. 1">
         </div>
 
         <div class="question">
-            <label>How many children under 5
-                   are in your household?</label>
+            <label>How many children under 5 are in your household?</label>
             <input type="number" id="num_children_u5"
                    min="1" max="10" placeholder="e.g. 2">
         </div>
@@ -132,8 +156,7 @@
             <select id="education">
                 <option value="Primary">Primary</option>
                 <option value="Secondary">Secondary</option>
-                <option value="College/University">
-                    College / University</option>
+                <option value="College/University">College / University</option>
             </select>
         </div>
 
@@ -146,10 +169,8 @@
         </div>
 
         <div class="question">
-            <label>Monthly household income in KES
-                   (optional)</label>
-            <input type="number" id="income"
-                   placeholder="e.g. 35000">
+            <label>Monthly household income in KES (optional)</label>
+            <input type="number" id="income" placeholder="e.g. 35000">
         </div>
 
         <button onclick="submitForm()">Check Risk Level</button>
@@ -157,27 +178,136 @@
     </div>
     <!-- end form-section -->
 
-    <!-- RESULT SECTION - hidden until form submitted -->
+    <!-- ── MEDICAL EXCLUSION MESSAGE ── -->
+    <div id="medical-section" style="display:none">
+        <div style="background:#fff8f0; border:2px solid #c8973a;
+                    border-radius:10px; padding:30px; text-align:center;">
+            <div style="font-size:48px; margin-bottom:16px;">🏥</div>
+            <h2 style="color:#8b4513; font-size:20px; margin-bottom:14px;">
+                Thank you for answering honestly
+            </h2>
+            <p style="font-size:14px; color:#555; line-height:1.8;
+                      max-width:500px; margin:0 auto 14px;">
+                This screening tool is designed for children with
+                <strong>typical developmental backgrounds</strong>.
+                Because your child has a diagnosed medical condition
+                or hearing issue, the predictions from this tool
+                may not be accurate or clinically appropriate
+                for their individual situation.
+            </p>
+            <p style="font-size:14px; color:#555; line-height:1.8;
+                      max-width:500px; margin:0 auto 20px;">
+                We strongly recommend consulting a
+                <strong>speech and language therapist</strong>
+                or your child's <strong>paediatrician</strong>,
+                who can provide a thorough, personalised assessment
+                that takes your child's specific condition into account.
+            </p>
+            <div style="background:#fdebd0; border-radius:8px; padding:14px;
+                        display:inline-block; text-align:left; margin-bottom:20px;">
+                <p style="font-size:13px; color:#7d4a00; margin:0; line-height:1.8;">
+                    🏥 <strong>Kenyatta National Hospital
+                    ENT &amp; Speech Therapy:</strong>
+                    +254 20 272 6300<br>
+                    📞 <strong>Kenya Paediatric Association:</strong>
+                    Contact your nearest referral hospital
+                </p>
+            </div>
+            <br>
+            <button onclick="resetForm()"
+                    style="background:#c8973a; margin-top:8px; width:auto;
+                           padding:12px 28px;">
+                ← Go Back
+            </button>
+        </div>
+    </div>
+
+    <!-- ── RESULT SECTION ── -->
     <div id="result-section" style="display:none">
         <div id="result-box">
-
             <h2 id="risk-level"></h2>
             <p id="probability"></p>
-
             <hr>
             <h3>WHO Milestone Checks</h3>
             <p id="vocab-status"></p>
             <p id="combine-status"></p>
             <p id="respond-status"></p>
-
             <hr>
             <h3>Recommendation</h3>
             <p id="recommendation"></p>
 
             <hr>
-            <button onclick="resetForm()">
-                Screen Another Child</button>
 
+            <!-- ── COLLAPSIBLE EXPLANATION ── -->
+            <div id="explanation-section">
+
+                <!-- Toggle button — click to expand / collapse -->
+                <button onclick="toggleExplanation()"
+                        id="explain-toggle-btn"
+                        style="background:#f0f4ff; color:#1a3a6e;
+                               border:1.5px solid #2056a8; border-radius:6px;
+                               padding:10px 18px; font-size:13px;
+                               cursor:pointer; width:100%; text-align:left;
+                               display:flex; justify-content:space-between;
+                               align-items:center; margin-bottom:0;">
+                    <span>🔍 Why was this prediction made?</span>
+                    <span id="explain-arrow"
+                          style="font-size:16px; transition:transform 0.3s;">▼</span>
+                </button>
+
+                <!-- Collapsible content — hidden by default -->
+                <div id="explanation-body"
+                     style="display:none; border:1.5px solid #2056a8;
+                            border-top:none; border-radius:0 0 6px 6px;
+                            padding:16px; background:#f8faff;">
+
+                    <!-- Top features that influenced prediction -->
+                    <h4 style="font-size:13px; color:#1a3a6e; margin-bottom:10px;">
+                        Key factors that influenced this result:
+                    </h4>
+                    <div id="explanation-flags"></div>
+
+                    <!-- WHO milestone detail -->
+                    <h4 style="font-size:13px; color:#1a3a6e;
+                               margin-top:14px; margin-bottom:8px;">
+                        WHO Milestone Assessment:
+                    </h4>
+                    <div id="explanation-milestones"></div>
+
+                    <!-- Screen time detail -->
+                    <h4 style="font-size:13px; color:#1a3a6e;
+                               margin-top:14px; margin-bottom:8px;">
+                        Screen Time Assessment:
+                    </h4>
+                    <div id="explanation-screen"></div>
+
+                    <!-- Model note -->
+                    <div style="margin-top:14px; padding:10px 12px;
+                                background:#fff8e8; border-radius:6px;
+                                border-left:3px solid #c8973a;
+                                font-size:11.5px; color:#666; line-height:1.6;">
+                        <strong>How the model works:</strong>
+                        This prediction was made by a Random Forest machine
+                        learning model trained on data from 41 children aged
+                        12–36 months in Nairobi County. The model weighs
+                        WHO developmental milestones, caregiver behaviour,
+                        screen exposure, and socioeconomic factors to estimate
+                        the probability of speech delay. It is a screening
+                        tool only and does not replace clinical assessment.
+                    </div>
+
+                </div>
+            </div>
+            <!-- end collapsible -->
+
+            <hr>
+            <p style="font-size:12px; color:#888; font-style:italic; margin-top:8px;">
+                ⚠️ This tool is a screening aid only and does not replace
+                a professional clinical assessment.
+            </p>
+            <button onclick="resetForm()" style="margin-top:14px;">
+                Screen Another Child
+            </button>
         </div>
     </div>
 
@@ -185,74 +315,269 @@
 <!-- end container -->
 
 <script>
-    async function submitForm() {
 
-        // Collect all answers
-        const child_data = {
-            child_age_months  : parseInt(document.getElementById("child_age_months").value),
-            word_count_range  : document.getElementById("word_count_range").value,
-            combines_words    : document.getElementById("combines_words").value,
-            responds_to_name  : document.getElementById("responds_to_name").value,
-            screen_weekday    : document.getElementById("screen_weekday").value,
-            screen_weekend    : document.getElementById("screen_weekend").value,
-            screen_intro_age  : document.getElementById("screen_intro_age").value,
-            verbal_interaction: document.getElementById("verbal_interaction").value,
-            co_view           : document.getElementById("co_view").value,
-            concern_raised    : document.getElementById("concern_raised").value,
-            birth_order       : parseInt(document.getElementById("birth_order").value),
-            num_children_u5   : parseInt(document.getElementById("num_children_u5").value),
-            education         : document.getElementById("education").value,
-            child_gender      : document.getElementById("child_gender").value,
-            income            : document.getElementById("income").value || null,
-        };
-
-        // Send to Flask and wait for result
-        const response = await fetch("/predict", {
-            method : "POST",
-            headers: { "Content-Type": "application/json" },
-            body   : JSON.stringify(child_data)
-        });
-
-        const result = await response.json();
-
-        // Display risk level with colour
-        const riskEl = document.getElementById("risk-level");
-        riskEl.textContent = result.risk_level;
-        if (result.risk_level === "HIGH RISK") {
-            riskEl.style.color = "firebrick";
-        } else if (result.risk_level === "MODERATE RISK") {
-            riskEl.style.color = "darkorange";
+    // ── Toggle explanation section ─────────────────────────────────
+    function toggleExplanation() {
+        const body  = document.getElementById("explanation-body");
+        const arrow = document.getElementById("explain-arrow");
+        if (body.style.display === "none") {
+            body.style.display = "block";
+            arrow.style.transform = "rotate(180deg)";
         } else {
-            riskEl.style.color = "green";
+            body.style.display = "none";
+            arrow.style.transform = "rotate(0deg)";
+        }
+    }
+
+    // ── Build explanation content from result ──────────────────────
+    function buildExplanation(result, child_data) {
+
+        // ── FLAGS — what behavioural risks were detected ──
+        const flagsEl = document.getElementById("explanation-flags");
+        const flags = [];
+
+        if (result.milestone_flags.word_delayed) {
+            flags.push({
+                icon: "🔴",
+                text: "Vocabulary delay detected — your child's word count is below the WHO expected level for their age."
+            });
+        }
+        if (result.milestone_flags.combine_delayed) {
+            flags.push({
+                icon: "🔴",
+                text: "Word combining delay — children this age are expected to combine two or more words."
+            });
+        }
+        if (result.milestone_flags.respond_delayed) {
+            flags.push({
+                icon: "🔴",
+                text: "Name response delay — consistent response to their own name is expected at this age."
+            });
+        }
+        if (result.screen_exceeds_who) {
+            flags.push({
+                icon: "🟠",
+                text: `Screen time of ${result.screen_avg_hrs} hrs/day exceeds WHO recommended limits for this age group.`
+            });
+        }
+        if (result.behavioural_flags && result.behavioural_flags.includes("low_verbal")) {
+            flags.push({
+                icon: "🟠",
+                text: "Low caregiver verbal interaction — children develop language faster with more daily talking, reading, and singing."
+            });
+        }
+        if (result.behavioural_flags && result.behavioural_flags.includes("early_screen")) {
+            flags.push({
+                icon: "🟠",
+                text: "Early screen introduction — screens introduced before 12 months are associated with higher speech delay risk."
+            });
+        }
+        if (result.behavioural_flags && result.behavioural_flags.includes("concern_raised")) {
+            flags.push({
+                icon: "🟡",
+                text: "A teacher or health worker has previously raised concern about this child's speech."
+            });
         }
 
-        // Display all other fields
-        document.getElementById("probability").textContent =
-            "Probability of speech delay: " + result.probability_pct;
+        if (flags.length === 0) {
+            flags.push({
+                icon: "🟢",
+                text: "No significant risk flags detected. The child appears to be developing within expected ranges."
+            });
+        }
 
-        document.getElementById("vocab-status").textContent =
-            "Vocabulary: " + result.milestone_flags.word_status;
+        flagsEl.innerHTML = flags.map(f =>
+            `<div style="display:flex; gap:8px; align-items:flex-start;
+                         margin-bottom:7px; font-size:12.5px; line-height:1.5; color:#333;">
+                <span style="flex-shrink:0;">${f.icon}</span>
+                <span>${f.text}</span>
+             </div>`
+        ).join("");
 
-        document.getElementById("combine-status").textContent =
-            "Word combining: " +
-            result.milestone_flags.combine_status;
+        // ── MILESTONES — WHO age band detail ──
+        const msEl  = document.getElementById("explanation-milestones");
+        const band  = result.milestone_band  || "—";
+        const minW  = result.who_minimum     || "—";
+        const prob  = result.probability_pct || "—";
 
-        document.getElementById("respond-status").textContent =
-            "Name response: " +
-            result.milestone_flags.respond_status;
+        msEl.innerHTML = `
+            <div style="background:white; border-radius:6px; padding:10px 14px;
+                        font-size:12px; line-height:1.8; color:#444;
+                        border:1px solid #ddd;">
+                <strong>Age band:</strong> ${band}<br>
+                <strong>WHO minimum vocabulary:</strong> ${minW} words<br>
+                <strong>Vocabulary status:</strong>
+                    ${result.milestone_flags.word_status || "—"}<br>
+                <strong>Word combining:</strong>
+                    ${result.milestone_flags.combine_status || "—"}<br>
+                <strong>Name response:</strong>
+                    ${result.milestone_flags.respond_status || "—"}<br>
+                <strong>Overall delay probability:</strong> ${prob}
+            </div>`;
 
-        document.getElementById("recommendation").textContent =
-            result.recommendation;
+        // ── SCREEN TIME DETAIL ──
+        const scrEl = document.getElementById("explanation-screen");
+        const avg   = result.screen_avg_hrs || "—";
+        const exceeds = result.screen_exceeds_who;
 
-        // Hide form, show result
-        document.getElementById("form-section").style.display = "none";
-        document.getElementById("result-section").style.display = "block";
+        scrEl.innerHTML = `
+            <div style="background:white; border-radius:6px; padding:10px 14px;
+                        font-size:12px; line-height:1.8; color:#444;
+                        border:1px solid #ddd;">
+                <strong>Average screen time:</strong> ${avg} hrs/day<br>
+                <strong>WHO limit (under 3 yrs):</strong> 1 hr/day<br>
+                <strong>Exceeds WHO limit:</strong>
+                    <span style="color:${exceeds ? '#c0392b' : '#27ae60'}; font-weight:600;">
+                        ${exceeds ? "Yes" : "No"}
+                    </span>
+            </div>`;
     }
 
+
+    // Fires when caregiver changes the medical condition dropdown
+    // If Yes → hide form immediately, show exclusion message
+    function checkMedical() {
+        const val = document.getElementById("medical_condition").value;
+        if (val === "Yes") {
+            document.getElementById("form-section").style.display    = "none";
+            document.getElementById("medical-section").style.display = "block";
+            document.getElementById("result-section").style.display  = "none";
+        }
+    }
+
+    // ── Age check ─────────────────────────────────────────────────
+    // Fires as caregiver types the age
+    // Shows inline warning below the age field if under 12 months
+    function checkAge() {
+        const age     = parseInt(document.getElementById("child_age_months").value);
+        const warning = document.getElementById("age-warning");
+        if (!age || age < 12) {
+            warning.style.display = "block";
+        } else {
+            warning.style.display = "none";
+        }
+    }
+
+    // ── Form submission ────────────────────────────────────────────
+    async function submitForm() {
+
+        // Gate 1 — medical condition
+        const medical = document.getElementById("medical_condition").value;
+        if (medical === "Yes") {
+            checkMedical();
+            return;
+        }
+
+        // Gate 2 — age below 12 months
+        const age = parseInt(document.getElementById("child_age_months").value);
+        if (!age || age < 12) {
+            document.getElementById("age-warning").style.display = "block";
+            document.getElementById("child_age_months").focus();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+        }
+
+        // Gate 3 — age above 36 months
+        if (age > 36) {
+            alert("This tool is designed for children aged 12 to 36 months. " +
+                  "Please check the age you entered.");
+            return;
+        }
+
+        // Gate 4 — word count not selected
+        const words = document.getElementById("word_count_range").value;
+        if (!words) {
+            alert("Please select how many words your child can say.");
+            return;
+        }
+
+        // All gates passed — collect answers
+        const child_data = {
+            child_age_months   : age,
+            word_count_range   : words,
+            combines_words     : document.getElementById("combines_words").value,
+            responds_to_name   : document.getElementById("responds_to_name").value,
+            screen_weekday     : document.getElementById("screen_weekday").value,
+            screen_weekend     : document.getElementById("screen_weekend").value,
+            screen_intro_age   : document.getElementById("screen_intro_age").value,
+            verbal_interaction : document.getElementById("verbal_interaction").value,
+            co_view            : document.getElementById("co_view").value,
+            concern_raised     : document.getElementById("concern_raised").value,
+            birth_order        : parseInt(document.getElementById("birth_order").value) || 1,
+            num_children_u5    : parseInt(document.getElementById("num_children_u5").value) || 1,
+            education          : document.getElementById("education").value,
+            child_gender       : document.getElementById("child_gender").value,
+            income             : document.getElementById("income").value || null,
+        };
+
+        // Send to Flask backend
+        try {
+            const response = await fetch("/predict", {
+                method  : "POST",
+                headers : { "Content-Type": "application/json" },
+                body    : JSON.stringify(child_data)
+            });
+
+            const result = await response.json();
+
+            // Colour the risk heading
+            const riskEl = document.getElementById("risk-level");
+            riskEl.textContent = result.risk_level;
+            if (result.risk_level === "HIGH RISK") {
+                riskEl.style.color = "firebrick";
+            } else if (result.risk_level === "MODERATE RISK") {
+                riskEl.style.color = "darkorange";
+            } else {
+                riskEl.style.color = "green";
+            }
+
+            document.getElementById("probability").textContent =
+                "Probability of speech delay: " + result.probability_pct;
+
+            document.getElementById("vocab-status").textContent =
+                "Vocabulary: " + result.milestone_flags.word_status;
+
+            document.getElementById("combine-status").textContent =
+                "Word combining: " + result.milestone_flags.combine_status;
+
+            document.getElementById("respond-status").textContent =
+                "Name response: " + result.milestone_flags.respond_status;
+
+            document.getElementById("recommendation").textContent =
+                result.recommendation;
+
+            // Build the collapsible explanation
+            buildExplanation(result, child_data);
+
+            // Make sure explanation is collapsed when result first shows
+            document.getElementById("explanation-body").style.display = "none";
+            document.getElementById("explain-arrow").style.transform  = "rotate(0deg)";
+
+            // Hide form, show result
+            document.getElementById("form-section").style.display  = "none";
+            document.getElementById("result-section").style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+
+        } catch (err) {
+            alert("Something went wrong. Please try again.");
+            console.error(err);
+        }
+    }
+
+    // ── Reset form to blank state ──────────────────────────────────
     function resetForm() {
-        document.getElementById("form-section").style.display = "block";
-        document.getElementById("result-section").style.display = "none";
+        document.getElementById("form-section").style.display    = "block";
+        document.getElementById("result-section").style.display  = "none";
+        document.getElementById("medical-section").style.display = "none";
+        document.getElementById("age-warning").style.display     = "none";
+        document.getElementById("medical_condition").value       = "No";
+        document.getElementById("child_age_months").value        = "";
+        document.getElementById("word_count_range").value        = "";
+        document.getElementById("explanation-body").style.display = "none";
+        document.getElementById("explain-arrow").style.transform  = "rotate(0deg)";
+        window.scrollTo({ top: 0, behavior: "smooth" });
     }
+
 </script>
 
 </body>
