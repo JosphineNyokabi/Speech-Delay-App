@@ -10,6 +10,7 @@
 <div class="container">
 
     <h1>Child Speech Delay Screening</h1>
+    <p class="subtitle">Strathmore University — MSc IT Research</p>
     <p>Answer the questions below about your child. All answers are confidential.</p>
 
     <!-- FORM SECTION -->
@@ -30,21 +31,16 @@
 
         <!-- ── AGE ── -->
         <div class="question">
-            <label>Child's age in months</label>
+            <label>Child's age in months
+                <span style="font-size:12px; color:#888; font-weight:normal;">(12 – 36 months only)</span>
+            </label>
             <input type="number" id="child_age_months"
-                   min="1" max="36" placeholder="e.g. 24"
-                   oninput="checkAge()">
+                   min="12" max="36" placeholder="e.g. 24"
+                   oninput="checkAge(this)">
             <div id="age-warning" style="display:none; margin-top:8px;
                  background:#fff3cd; border:1px solid #ffc107; border-radius:6px;
                  padding:10px 14px; font-size:13px; color:#856404; line-height:1.6;">
-                ⚠️ <strong>Age outside screening range.</strong><br>
-                This tool is designed for children aged <strong>12 to 36 months</strong>.
-                Children under 12 months are still in very early development —
-                most children only begin saying recognisable words, responding
-                consistently to their name, and combining sounds after 12 months.
-                A prediction at this age would not be meaningful or clinically valid.<br><br>
-                If you have concerns about your infant's development, please
-                speak to your paediatrician or a speech and language therapist.
+                <span id="age-warning-text"></span>
             </div>
         </div>
 
@@ -203,16 +199,6 @@
                 who can provide a thorough, personalised assessment
                 that takes your child's specific condition into account.
             </p>
-            <div style="background:#fdebd0; border-radius:8px; padding:14px;
-                        display:inline-block; text-align:left; margin-bottom:20px;">
-                <p style="font-size:13px; color:#7d4a00; margin:0; line-height:1.8;">
-                    🏥 <strong>Kenyatta National Hospital
-                    ENT &amp; Speech Therapy:</strong>
-                    +254 20 272 6300<br>
-                    📞 <strong>Kenya Paediatric Association:</strong>
-                    Contact your nearest referral hospital
-                </p>
-            </div>
             <br>
             <button onclick="resetForm()"
                     style="background:#c8973a; margin-top:8px; width:auto;
@@ -224,17 +210,27 @@
 
     <!-- ── RESULT SECTION ── -->
     <div id="result-section" style="display:none">
-        <div id="result-box">
-            <h2 id="risk-level"></h2>
-            <p id="probability"></p>
-            <hr>
-            <h3>WHO Milestone Checks</h3>
+        <div id="result-box" style="padding:20px; border-radius:10px; transition:all 0.3s;">
+
+            <!-- Colour-coded risk banner -->
+            <div id="risk-banner" style="
+                border-radius:8px;
+                padding:24px 20px 18px;
+                margin:-20px -20px 20px;
+                text-align:center;">
+                <div id="risk-icon" style="font-size:48px; margin-bottom:8px; line-height:1;"></div>
+                <h2 id="risk-level" style="margin:0 0 6px; font-size:24px;
+                    letter-spacing:1.5px; font-weight:800;"></h2>
+                <p id="probability" style="margin:0; font-size:14px; font-weight:600; opacity:0.9;"></p>
+            </div>
+
+            <h3 style="margin-top:4px;">WHO Milestone Checks</h3>
             <p id="vocab-status"></p>
             <p id="combine-status"></p>
             <p id="respond-status"></p>
             <hr>
             <h3>Recommendation</h3>
-            <p id="recommendation"></p>
+            <p id="recommendation" style="font-size:14px; line-height:1.7;"></p>
 
             <hr>
 
@@ -446,12 +442,32 @@
     }
 
     // ── Age check ─────────────────────────────────────────────────
-    // Fires as caregiver types the age
-    // Shows inline warning below the age field if under 12 months
-    function checkAge() {
-        const age     = parseInt(document.getElementById("child_age_months").value);
-        const warning = document.getElementById("age-warning");
+    // Fires as caregiver types — hard-blocks values outside 12–36
+    function checkAge(input) {
+        let age = parseInt(input.value);
+        const warning     = document.getElementById("age-warning");
+        const warningText = document.getElementById("age-warning-text");
+
+        // if they somehow type >36, clear the field immediately
+        if (age > 36) {
+            input.value = "";
+            age = NaN;
+            warningText.innerHTML = "⚠️ <strong>Maximum age is 36 months.</strong> " +
+                "This tool screens children aged 12 to 36 months only. " +
+                "Please enter the correct age.";
+            warning.style.display = "block";
+            return;
+        }
+
         if (!age || age < 12) {
+            warningText.innerHTML = "⚠️ <strong>Age outside screening range.</strong><br>" +
+                "This tool is designed for children aged <strong>12 to 36 months</strong>. " +
+                "Children under 12 months are still in very early development — " +
+                "most begin saying recognisable words, responding to their name, " +
+                "and combining sounds only after 12 months. " +
+                "A prediction at this age would not be clinically valid.<br><br>" +
+                "If you have concerns about your infant's development, please " +
+                "speak to your paediatrician or a speech and language therapist.";
             warning.style.display = "block";
         } else {
             warning.style.display = "none";
@@ -518,21 +534,54 @@
                 body    : JSON.stringify(child_data)
             });
 
-            const result = await response.json();
-
-            // Colour the risk heading
-            const riskEl = document.getElementById("risk-level");
-            riskEl.textContent = result.risk_level;
-            if (result.risk_level === "HIGH RISK") {
-                riskEl.style.color = "firebrick";
-            } else if (result.risk_level === "MODERATE RISK") {
-                riskEl.style.color = "darkorange";
-            } else {
-                riskEl.style.color = "green";
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error("Server error:", errText);
+                alert("The server returned an error. Please try again.\n\nIf this keeps happening, the server may be restarting — wait 60 seconds.");
+                return;
             }
 
-            document.getElementById("probability").textContent =
-                "Probability of speech delay: " + result.probability_pct;
+            const result = await response.json();
+
+            // ── Colour-code the entire result panel ──────────────────
+            const riskEl   = document.getElementById("risk-level");
+            const banner   = document.getElementById("risk-banner");
+            const box      = document.getElementById("result-box");
+            const iconEl   = document.getElementById("risk-icon");
+            const probEl   = document.getElementById("probability");
+
+            riskEl.textContent = result.risk_level;
+
+            if (result.risk_level === "HIGH RISK") {
+                // Red theme
+                banner.style.background    = "#c0392b";
+                banner.style.borderBottom  = "4px solid #922b21";
+                box.style.border           = "2px solid #c0392b";
+                box.style.boxShadow        = "0 4px 18px rgba(192,57,43,0.18)";
+                riskEl.style.color         = "#ffffff";
+                probEl.style.color         = "#ffffff";
+                iconEl.textContent         = "🔴";
+            } else if (result.risk_level === "MODERATE RISK") {
+                // Orange theme
+                banner.style.background    = "#e67e22";
+                banner.style.borderBottom  = "4px solid #ca6f1e";
+                box.style.border           = "2px solid #e67e22";
+                box.style.boxShadow        = "0 4px 18px rgba(230,126,34,0.18)";
+                riskEl.style.color         = "#ffffff";
+                probEl.style.color         = "#ffffff";
+                iconEl.textContent         = "🟠";
+            } else {
+                // Green theme
+                banner.style.background    = "#27ae60";
+                banner.style.borderBottom  = "4px solid #1e8449";
+                box.style.border           = "2px solid #27ae60";
+                box.style.boxShadow        = "0 4px 18px rgba(39,174,96,0.18)";
+                riskEl.style.color         = "#ffffff";
+                probEl.style.color         = "#ffffff";
+                iconEl.textContent         = "🟢";
+            }
+
+            probEl.textContent = "Probability of speech delay: " + result.probability_pct;
 
             document.getElementById("vocab-status").textContent =
                 "Vocabulary: " + result.milestone_flags.word_status;
@@ -559,8 +608,8 @@
             window.scrollTo({ top: 0, behavior: "smooth" });
 
         } catch (err) {
-            alert("Something went wrong. Please try again.");
-            console.error(err);
+            alert("Request could not be submitted. Please check your internet connection and try again.\n\nIf the problem persists, the server may be starting up — wait 60 seconds and try once more.");
+            console.error("Prediction error:", err);
         }
     }
 

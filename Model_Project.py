@@ -1779,7 +1779,7 @@ grouped_bar(ax, verbal_cats,
                 [low_vb.get(c, 0) for c in verbal_cats],
                 "Verbal Interaction", "Verbal Interaction vs Delay Risk")
 
-    # Screen introduction ─────────────────────────────────────────────
+    # Screen introduction
 ax = axes[1, 2]
 bp4 = ax.boxplot(
         [intro_at, intro_low],
@@ -1795,7 +1795,7 @@ ax.set_title("Screen Intro Age vs Delay Risk", fontsize=10, fontweight="bold")
 ax.set_ylabel("Age (months)")
 ax.legend(fontsize=7)
 
-    # Ward ─────────────────────────────────────────────────
+    # Ward 
 ax = axes[1, 3]
 if ward_field in df.columns:
         grouped_bar(ax, all_wards,
@@ -2050,25 +2050,25 @@ if __name__ == '__main__':
     df = engineer_label(df)
     X, y, feature_names = prepare_features(df)
     # Ensure samples are sufficient for training
-if len(X) < 10:
+    if len(X) < 10:
         print("\n  Not enough data yet (minimum 10 samples needed).")
         print("  Keep collecting responses and run again.")
 
-else: 
-    results, models = train_and_evaluate(X, y)
-    importance_df = get_feature_importance(X, y, feature_names)
-    make_charts(results, importance_df, X, y, df)
-    make_comparative_charts(df)
+    else: 
+        results, models = train_and_evaluate(X, y)
+        importance_df = get_feature_importance(X, y, feature_names)
+        make_charts(results, importance_df, X, y, df)
+        make_comparative_charts(df)
     # Train final model on all data for web interface use
-    from sklearn.impute import SimpleImputer
-    final_imputer = SimpleImputer(strategy="median")
-    X_filled      = final_imputer.fit_transform(X)
-    final_model   = RandomForestClassifier(
-    n_estimators=200, class_weight="balanced", random_state=42
+        from sklearn.impute import SimpleImputer
+        final_imputer = SimpleImputer(strategy="median")
+        X_filled      = final_imputer.fit_transform(X)
+        final_model   = RandomForestClassifier(
+        n_estimators=200, class_weight="balanced", random_state=42
         )
-    final_model.fit(X_filled, y)
+        final_model.fit(X_filled, y)
 # Run a demo prediction with example data
-    run_demo_prediction(final_model, final_imputer, feature_names)
+        run_demo_prediction(final_model, final_imputer, feature_names)
 print
 
 
