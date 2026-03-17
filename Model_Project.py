@@ -1504,10 +1504,10 @@ def make_comparative_charts(df_model):
     # at_risk and low_risk are now defined globally above
     global at_risk, low_risk
 
-    # income vs speech delay risk
-    fig1, ax1 = plt.subplots(figsize=(8, 5))
+# income vs speech delay risk
+fig1, ax1 = plt.subplots(figsize=(8, 5))
 
-    at_inc_vals  = at_risk["income"].dropna()
+at_inc_vals  = at_risk["income"].dropna()
 at_inc_vals  = at_inc_vals[at_inc_vals > 0]
 low_inc_vals = low_risk["income"].dropna()
 low_inc_vals = low_inc_vals[low_inc_vals > 0]
