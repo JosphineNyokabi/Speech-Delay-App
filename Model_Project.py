@@ -1143,8 +1143,6 @@ print(pd.DataFrame(results).T.sort_values('f1', ascending=False).round(3))
 
 
 # Generate Charts
-def make_charts(results, importance_df, X, y, df):
- print("\n[Step 7] Generating charts...")
 def save_chart(figure, filename):
     print("\n[Step 7] Generating charts...")
     figure.tight_layout()
@@ -1152,6 +1150,10 @@ def save_chart(figure, filename):
     plt.show()        # <-- displays chart immediately in Jupyter notebook
     plt.close(figure)
     print(f"  Saved: {filename}")
+
+
+def make_charts(results, importance_df, X, y, df):
+    print("\n[Step 7] Generating charts...")
 
 
 # In[121]:
@@ -1311,9 +1313,8 @@ print("  Saved: chart4_severity_distribution.png")
 
 
 # Prepare income data
-fig5, axes = plt.subplots(figsize=(9, 5))
+fig5, ax5 = plt.subplots(figsize=(7, 5))
 
-# Get cleaned income values from existing notebook data
 if 'df_model' in globals() and 'income' in df_model.columns:
     income_data = df_model['income'].dropna()
 elif 'df' in globals() and 'income' in df.columns:
@@ -1321,29 +1322,45 @@ elif 'df' in globals() and 'income' in df.columns:
 else:
     income_data = pd.Series(dtype=float)
 
-# Bucket the income data
-income_bins = [0, 20000, 50000, 100000, np.inf]
-income_labels = ['<20K', '20K–50K', '50K–100K', '>100K']
-bucket_counts = (
-    pd.cut(income_data, bins=income_bins, labels=income_labels, include_lowest=True)
-    .value_counts()
-    .reindex(income_labels, fill_value=0)
-)
+income_reported = income_data[income_data > 0]
+n_no_income = len(income_data.reindex(df_model.index if 'df_model' in globals() else df.index, fill_value=np.nan)) - len(income_reported) if False else (len(df_model) if 'df_model' in globals() else len(df)) - len(income_reported)
 
-ax = axes
-if len(income_data) > 0:
-    bars = ax.bar(
-            income_labels, bucket_counts.values,
-            color=["red", "orange", "lightblue", "lightgreen"],
-            alpha=0.85, edgecolor="white"
-        )
-    ax.bar_label(bars, padding=3, fontsize=9)
-    ax.set_title("Monthly Household Income (KES)")
-    ax.set_ylabel("Number of caregivers")
+if len(income_reported) > 0:
+    import random as _random
+    _random.seed(42)
+
+    ax5.boxplot(
+        income_reported,
+        vert=True,
+        patch_artist=True,
+        widths=0.4,
+        medianprops=dict(color="darkorange", linewidth=2.5),
+        boxprops=dict(facecolor="cornflowerblue", alpha=0.6),
+        whiskerprops=dict(color="steelblue", linewidth=1.5),
+        capprops=dict(color="steelblue", linewidth=1.5),
+        flierprops=dict(marker="o", markerfacecolor="tomato", markersize=6, linestyle="none", alpha=0.7),
+    )
+
+    jitter = [1 + _random.uniform(-0.12, 0.12) for _ in income_reported]
+    ax5.scatter(jitter, income_reported, color="steelblue", alpha=0.5, s=28, zorder=5, label="Participant")
+
+    med = income_reported.median()
+    q1  = income_reported.quantile(0.25)
+    q3  = income_reported.quantile(0.75)
+    ax5.text(1.28, med, f"Median: KES {med:,.0f}", va="center", fontsize=8.5, color="darkorange")
+    ax5.text(1.28, q1,  f"Q1: KES {q1:,.0f}",     va="center", fontsize=8,   color="steelblue")
+    ax5.text(1.28, q3,  f"Q3: KES {q3:,.0f}",     va="center", fontsize=8,   color="steelblue")
+
+    ax5.set_title("Monthly Household Income Distribution", fontsize=11, fontweight="bold")
+    ax5.set_ylabel("Monthly Income (KES)")
+    ax5.set_xticks([1])
+    ax5.set_xticklabels([f"Participants who\nreported income\n(n={len(income_reported)})"], fontsize=9)
+    ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"KES {x:,.0f}"))
+    ax5.legend(fontsize=9, loc="upper right")
+
 else:
-    ax.text(0.5, 0.5, "No income data", ha="center", va="center",
-                transform=ax.transAxes)
-    ax.set_title("Monthly Household Income (KES)")
+    ax5.text(0.5, 0.5, "No income data", ha="center", va="center", transform=ax5.transAxes)
+    ax5.set_title("Monthly Household Income (KES)")
 
 fig5.tight_layout()
 fig5.savefig("chart5_income_distribution.png", dpi=150, bbox_inches="tight")
@@ -1490,19 +1507,28 @@ def make_comparative_charts(df_model):
     # income vs speech delay risk
     fig1, ax1 = plt.subplots(figsize=(8, 5))
 
-income_bins   = [0, 20000, 50000, 100000, float("inf")]
-income_labels = ["<20K", "20-50K", "50-100K", ">100K"]
+    at_inc_vals  = at_risk["income"].dropna()
+at_inc_vals  = at_inc_vals[at_inc_vals > 0]
+low_inc_vals = low_risk["income"].dropna()
+low_inc_vals = low_inc_vals[low_inc_vals > 0]
 
-# group income data for at-risk vs low-risk children
-at_income  = pd.cut(at_risk["income"].dropna(),  bins=income_bins, labels=income_labels, include_lowest=True)
-low_income = pd.cut(low_risk["income"].dropna(), bins=income_bins, labels=income_labels, include_lowest=True)
+bp = ax1.boxplot(
+    [at_inc_vals, low_inc_vals],
+    patch_artist=True,
+    widths=0.4,
+    medianprops=dict(color="black", linewidth=2),
+    whiskerprops=dict(linewidth=1.5),
+    capprops=dict(linewidth=1.5),
+    flierprops=dict(marker="o", markersize=5, linestyle="none", alpha=0.6),
+)
+bp["boxes"][0].set_facecolor(AT_COLOUR);  bp["boxes"][0].set_alpha(0.7)
+bp["boxes"][1].set_facecolor(LOW_COLOUR); bp["boxes"][1].set_alpha(0.7)
 
-at_counts  = [at_income.value_counts().get(l, 0)  for l in income_labels]
-low_counts = [low_income.value_counts().get(l, 0) for l in income_labels]
-
-grouped_bar(ax1, income_labels, at_counts, low_counts,
-                "Monthly Income (KES)",
-                "Income vs Speech Delay Risk")
+ax1.set_xticks([1, 2])
+ax1.set_xticklabels([f"At-Risk (n={len(at_inc_vals)})", f"Low-Risk (n={len(low_inc_vals)})"], fontsize=10)
+ax1.set_ylabel("Monthly Income (KES)")
+ax1.set_title("Income vs Speech Delay Risk\nRaw KES — no standardisation", fontsize=11, fontweight="bold")
+ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"KES {x:,.0f}"))
 ax1.text(0.98, 0.95,
              "Lower income → higher at-risk proportion",
              transform=ax1.transAxes, ha="right", va="top",
@@ -1559,27 +1585,42 @@ save_chart(fig3, "comp3_education_vs_delay.png")
 
 
 # Ward vs speech delay risk
-fig4, ax4 = plt.subplots(figsize=(11, 5))
-
 ward_field = "ward"
 if ward_field in df.columns:
-        # Get all wards 
-        all_wards  = sorted(df[ward_field].dropna().unique())
+    all_wards  = sorted(df[ward_field].dropna().unique())
+    at_ward    = at_risk[ward_field].value_counts()
+    low_ward   = low_risk[ward_field].value_counts()
+    at_counts  = [at_ward.get(w, 0)  for w in all_wards]
+    low_counts = [low_ward.get(w, 0) for w in all_wards]
 
-        at_ward  = at_risk[ward_field].value_counts()
-        low_ward = low_risk[ward_field].value_counts()
+fig4, ax4 = plt.subplots(figsize=(9, max(5, len(all_wards) * 0.55)))
 
-        at_counts  = [at_ward.get(w, 0)  for w in all_wards]
-        low_counts = [low_ward.get(w, 0) for w in all_wards]
+if ward_field in df.columns:
+    y      = np.arange(len(all_wards))
+    height = 0.35
+    bars_at  = ax4.barh(y + height/2, at_counts,  height, label="At-Risk",  color=AT_COLOUR,  alpha=0.85)
+    bars_low = ax4.barh(y - height/2, low_counts, height, label="Low-Risk", color=LOW_COLOUR, alpha=0.85)
 
-        grouped_bar(ax4, all_wards, at_counts, low_counts,
-                    "Ward / Sub-county",
-                    "Ward vs Speech Delay Risk",
-                    rotation=40)
+    for bar in bars_at:
+        if bar.get_width() > 0:
+            ax4.text(bar.get_width() + 0.05, bar.get_y() + bar.get_height()/2,
+                     str(int(bar.get_width())), va="center", fontsize=8)
+    for bar in bars_low:
+        if bar.get_width() > 0:
+            ax4.text(bar.get_width() + 0.05, bar.get_y() + bar.get_height()/2,
+                     str(int(bar.get_width())), va="center", fontsize=8)
+
+    ax4.set_yticks(y)
+    ax4.set_yticklabels(all_wards, fontsize=9)
+    ax4.set_xlabel("Number of Children")
+    ax4.set_title("Ward vs Speech Delay Risk", fontsize=12, fontweight="bold")
+    ax4.legend(fontsize=9)
+    ax4.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    ax4.invert_yaxis()
 else:
-        ax4.text(0.5, 0.5, "Ward data not available",
-                 ha="center", va="center", transform=ax4.transAxes)
-        ax4.set_title("Ward vs Speech Delay Risk")
+    ax4.text(0.5, 0.5, "Ward data not available",
+             ha="center", va="center", transform=ax4.transAxes)
+    ax4.set_title("Ward vs Speech Delay Risk")
 
 save_chart(fig4, "comp4_ward_vs_delay.png")
 
@@ -1593,7 +1634,7 @@ fig5, ax5 = plt.subplots(figsize=(7, 5))
 screen_at  = at_risk["screen_avg_hrs"].dropna()
 screen_low = low_risk["screen_avg_hrs"].dropna()
 
- # Box plot shows median, interquartile range, and outliers
+# Box plot shows median, interquartile range, and outliers
 bp = ax5.boxplot(
         [screen_at, screen_low],
         labels=[f"At-Risk\n(n={len(screen_at)})",
@@ -1619,7 +1660,7 @@ ax5.set_title("Daily Screen Time vs Speech Delay Risk",
 ax5.set_ylabel("Average daily screen time (hours)")
 ax5.legend(fontsize=9)
 
- # Annotate with median values
+# Annotate with median values
 for i, data in enumerate([screen_at, screen_low], 1):
     if len(data) > 0:
             ax5.text(i, data.median() + 0.1, f"Median: {data.median():.1f}h",
@@ -1732,9 +1773,17 @@ fig_dash.suptitle(
 
     # Income ───────────────────────────────────────────────
 ax = axes[0, 0]
-grouped_bar(ax, income_labels, at_counts := [at_income.value_counts().get(l, 0) for l in income_labels],
-                [low_income.value_counts().get(l, 0) for l in income_labels],
-                "Income (KES)", "Income vs Delay Risk")
+_at_inc  = at_risk["income"].dropna();  _at_inc  = _at_inc[_at_inc > 0]
+_low_inc = low_risk["income"].dropna(); _low_inc = _low_inc[_low_inc > 0]
+_bp = ax.boxplot([_at_inc, _low_inc], patch_artist=True, widths=0.4,
+                 medianprops=dict(color="black", linewidth=2),
+                 flierprops=dict(marker="o", markersize=4, linestyle="none", alpha=0.5))
+_bp["boxes"][0].set_facecolor(AT_COLOUR);  _bp["boxes"][0].set_alpha(0.7)
+_bp["boxes"][1].set_facecolor(LOW_COLOUR); _bp["boxes"][1].set_alpha(0.7)
+ax.set_xticks([1, 2]); ax.set_xticklabels(["At-Risk", "Low-Risk"], fontsize=8)
+ax.set_title("Income vs Delay Risk", fontsize=10, fontweight="bold")
+ax.set_ylabel("Income (KES)")
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x/1000:.0f}K"))
 
     # Birth order ──────────────────────────────────────────
 ax = axes[0, 1]
@@ -1798,14 +1847,17 @@ ax.legend(fontsize=7)
     # Ward 
 ax = axes[1, 3]
 if ward_field in df.columns:
-        grouped_bar(ax, all_wards,
-                    [at_ward.get(w, 0) for w in all_wards],
-                    [low_ward.get(w, 0) for w in all_wards],
-                    "Ward", "Ward vs Delay Risk", rotation=40)
+    _y = np.arange(len(all_wards)); _h = 0.35
+    _b1 = ax.barh(_y + _h/2, [at_ward.get(w, 0) for w in all_wards],  _h, label="At-Risk",  color=AT_COLOUR,  alpha=0.85)
+    _b2 = ax.barh(_y - _h/2, [low_ward.get(w, 0) for w in all_wards], _h, label="Low-Risk", color=LOW_COLOUR, alpha=0.85)
+    ax.set_yticks(_y); ax.set_yticklabels(all_wards, fontsize=7)
+    ax.set_title("Ward vs Delay Risk", fontsize=10, fontweight="bold")
+    ax.set_xlabel("Count"); ax.legend(fontsize=7); ax.invert_yaxis()
+    ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 else:
-        ax.text(0.5, 0.5, "Ward data\nnot available",
-                ha="center", va="center", transform=ax.transAxes)
-        ax.set_title("Ward vs Delay Risk")
+    ax.text(0.5, 0.5, "Ward data\nnot available",
+            ha="center", va="center", transform=ax.transAxes)
+    ax.set_title("Ward vs Delay Risk")
 
 fig_dash.tight_layout()
 fig_dash.savefig("comp_dashboard.png", dpi=150, bbox_inches="tight")
@@ -2044,32 +2096,33 @@ if __name__ == '__main__':
     print("=" * 60)
     # Load and prepare data
     def load_data(filepath):
-      df = pd.read_csv()
-    ...
+        df = pd.read_csv(filepath)
+        return df
+    
+    df = load_data('Data_Download_1.csv')
     df = clean_data(df)
     df = engineer_label(df)
     X, y, feature_names = prepare_features(df)
-    # Ensure samples are sufficient for training
-    if len(X) < 10:
-        print("\n  Not enough data yet (minimum 10 samples needed).")
-        print("  Keep collecting responses and run again.")
+# Ensure samples are sufficient for training
+if len(X) < 10:
+    print("\n  Not enough data yet (minimum 10 samples needed).")
+    print("  Keep collecting responses and run again.")
 
-    else: 
-        results, models = train_and_evaluate(X, y)
-        importance_df = get_feature_importance(X, y, feature_names)
-        make_charts(results, importance_df, X, y, df)
-        make_comparative_charts(df)
+else: 
+    results, models = train_and_evaluate(X, y)
+    importance_df = get_feature_importance(X, y, feature_names)
+    make_charts(results, importance_df, X, y, df)
+    make_comparative_charts(df)
     # Train final model on all data for web interface use
-        from sklearn.impute import SimpleImputer
-        final_imputer = SimpleImputer(strategy="median")
-        X_filled      = final_imputer.fit_transform(X)
-        final_model   = RandomForestClassifier(
+    from sklearn.impute import SimpleImputer
+    final_imputer = SimpleImputer(strategy="median")
+    X_filled      = final_imputer.fit_transform(X)
+    final_model   = RandomForestClassifier(
         n_estimators=200, class_weight="balanced", random_state=42
-        )
-        final_model.fit(X_filled, y)
-# Run a demo prediction with example data
-        run_demo_prediction(final_model, final_imputer, feature_names)
-print
+    )
+    final_model.fit(X_filled, y)
+    # Run a demo prediction with example data
+    run_demo_prediction(final_model, final_imputer, feature_names)
 
 
 # In[72]:
