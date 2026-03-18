@@ -61,7 +61,7 @@ BACKFILL_COUNTIES = ['Nairobi', 'Kiambu', 'Machakos', 'Kajiado']
 WHO_MILESTONES = {
     # 12-17 months
     (12, 17): {
-        'min_words'     : 3,      # WHO: at least 3 meaningful words by 12-17 months
+        'min_words'     : 1,      # Child should say at least 1 meaningful word
         'combines_words': False,  # Two-word phrases are NOT yet expected
         'responds_to_name': True, # Should respond when called by name
         'description': (
@@ -73,7 +73,7 @@ WHO_MILESTONES = {
     # 18-23 months
     (18, 23): {
         'min_words'     : 10,     # WHO: at least 10 words by 18 months
-        'combines_words': True,   # WHO: two-word combinations expected by 18-24 months
+        'combines_words': False,  # Still not expected to combine words yet
         'responds_to_name': True,
         'description': (
             "18–23 months: Child should use at least 10 words. "
@@ -700,10 +700,10 @@ df['screen_avg_hrs'] = (
         df['screen_weekday_hrs'].fillna(0) * 5 +
         df['screen_weekend_hrs'].fillna(0) * 2
     ) / 7
-above_who = (df['screen_avg_hrs'] > 2).sum()
+above_who = (df['screen_avg_hrs'] > 1).sum()
 print(f"  Result range: {df['screen_avg_hrs'].min():.2f} – "
           f"{df['screen_avg_hrs'].max():.2f} hrs/day")
-print(f"  {above_who} children ({above_who/len(df)*100:.0f}%) exceed WHO 2hr guideline")
+print(f"  {above_who} children ({above_who/len(df)*100:.0f}%) exceed WHO 1hr guideline")
 
 
 # In[109]:
@@ -849,7 +849,7 @@ def engineer_label(df):
     # Concern raised by health worker or teacher
     df['flag_concern'] = (df['concern_raised_bin'] == 1).astype(int)
     # Average screen time above WHO recommendation
-    df['flag_screen_time'] = (df['screen_avg_hrs'] > 2).astype(int)
+    df['flag_screen_time'] = (df['screen_avg_hrs'] > 1).astype(int)
     # Low verbal interaction score
     df['flag_verbal'] = (df['verbal_score'] <= 1).astype(int)
     # Screen introduction before 12 months
@@ -863,7 +863,7 @@ def engineer_label(df):
     )
     # Final binary label
     df['speech_delay_label'] = (
-        (df['milestone_delay_count'] >= 1.0) |
+        (df['milestone_delay_count'] >= 0.5) |
         (df['behavioural_flag_count'] >= 2)
     ).astype(int)
 
@@ -1544,9 +1544,9 @@ def make_comparative_charts(df_model, at_risk, low_risk):
     bp["boxes"][1].set_facecolor(LOW_COLOUR)
     bp["boxes"][1].set_alpha(0.75)
 
-    # Add WHO 2-hour guideline as a dashed reference line
-    ax5.axhline(2, color="firebrick", linestyle="--", linewidth=1.5,
-                    label="WHO 2hr guideline")
+    # Add WHO 1-hour guideline as a dashed reference line
+    ax5.axhline(1, color="firebrick", linestyle="--", linewidth=1.5,
+                    label="WHO 1hr guideline")
 
     ax5.set_title("Daily Screen Time vs Speech Delay Risk",
                       fontsize=11, fontweight="bold")
@@ -1702,7 +1702,7 @@ def make_comparative_charts(df_model, at_risk, low_risk):
         )
     bp3["boxes"][0].set_facecolor(AT_COLOUR);  bp3["boxes"][0].set_alpha(0.75)
     bp3["boxes"][1].set_facecolor(LOW_COLOUR); bp3["boxes"][1].set_alpha(0.75)
-    ax.axhline(2, color="firebrick", linestyle="--", linewidth=1, label="WHO 2hr")
+    ax.axhline(1, color="firebrick", linestyle="--", linewidth=1, label="WHO 1hr")
     ax.set_title("Screen Time vs Delay Risk", fontsize=10, fontweight="bold")
     ax.set_ylabel("Avg hrs/day")
     ax.legend(fontsize=7)
@@ -1826,7 +1826,7 @@ def predict_new_child(trained_model, fitted_imputer, feature_names, child_data):
 
     # behavioural flags
     flag_concern = concern_bin
-    flag_excess_screen = int(screen_avg > 2)
+    flag_excess_screen = int(screen_avg > 1)
     flag_low_verbal = int(verbal_score <= 1) if not pd.isna(verbal_score) else 0
     flag_early_screen = int(screen_intro < 12) if not pd.isna(screen_intro) else 0
 
@@ -1864,19 +1864,11 @@ def predict_new_child(trained_model, fitted_imputer, feature_names, child_data):
     # Predict probability of being at risk
     probability = trained_model.predict_proba(row_imp)[0][1]
 
-    # If only a minor single milestone delay with no behavioural flags, cap at MODERATE
-    minor_gap = (
-        milestone_flags["milestone_delay_count"] < 1.0 and
-        behavioural_flags["total_flags"] == 0
-    )
-    if minor_gap:
-        probability = min(probability, 0.59)
-
     if probability >= 0.60:
         risk_level = "HIGH RISK"
         recommendation = (
             "Refer to a speech therapist urgently. "
-            "Reduce screen time to below 2 hours per day. "
+            "Reduce screen time to below 1 hour per day. "
             "Increase talking, reading, and singing to over 1 hour per day."
         )
     elif probability >= 0.35:
@@ -1907,7 +1899,7 @@ def predict_new_child(trained_model, fitted_imputer, feature_names, child_data):
         "who_minimum"       : who_minimum,
         "milestone_band"    : milestone_flags.get("milestone_band", "Unknown"),
         "screen_avg_hrs"    : round(screen_avg, 2),
-        "screen_exceeds_who": bool(screen_avg > 2),
+        "screen_exceeds_who": bool(screen_avg > 1),
     }
 
 
