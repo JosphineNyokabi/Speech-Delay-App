@@ -37,7 +37,7 @@ warnings.filterwarnings('ignore')
 
 
 # Load data file
-CSV_FILE = pd.read_csv('Data_Download_1.csv')
+CSV_FILE = 'Data_Download_1.csv'
 
 
 # In[76]:
@@ -374,7 +374,7 @@ print(f"\n[Step 1] Data loading function defined successfully.")
 
 
 # Read data file
-df = pd.read_csv('Data_Download_1.csv')
+df = pd.read_csv(CSV_FILE)
 
 
 # In[89]:
@@ -1184,113 +1184,113 @@ def make_charts(results, importance_df, X, y, df_model):
 
     save_chart(fig1, "chart1_model_performance.png")
 
-# Feature performance chart
-fig2, ax2 = plt.subplots(figsize=(9, 6))
-top_10 = importance_df.head(10) # type: ignore
-# Assign colour based on rank — top 3 get crimson, rest get blue
-bar_colours = [
-    "crimson" if i < 3 else "lightblue"
-    for i in range(len(top_10))
-]
-# most important feature starts
-ax2.barh(
-    top_10["Feature"][::-1],
-    top_10["Importance"][::-1],
-    color=bar_colours[::-1],
-    alpha=0.88,
-    edgecolor="white"
-)
-
-ax2.set_title("Feature Importance (Random Forest)", fontsize=12, fontweight="bold")
-ax2.set_xlabel("Importance Score (higher = more influential)")
-ax2.legend(handles=[
-        mpatches.Patch(color="crimson",        label="Top 3 predictors"),
-        mpatches.Patch(color="cornflowerblue", label="Supporting features"),
-    ], fontsize=9)
-
-save_chart(fig2, "chart2_feature_importance.png")
-
-
-# In[123]:
-
-
-# Milestones by age band
-fig3, ax3 = plt.subplots(figsize=(9, 5))
-
-age_bands  = ["12–17 months", "18–23 months", "24–29 months", "30–36 months"]
-band_x     = np.arange(len(age_bands))
-band_width = 0.25
-
-for i, (delay_col, delay_label, colour) in enumerate([
-        ("milestone_word_delay",    "Vocabulary delay",     "tomato"),
-        ("milestone_combine_delay", "Word combining delay", "orange"),
-        ("milestone_respond_delay", "Name response delay",  "mediumpurple"),
-    ]):
-    # sum delay scores per age band
-    counts = [
-        df_model[df_model["milestone_band"] == band][delay_col].sum()
-        for band in age_bands
+    # Feature performance chart
+    fig2, ax2 = plt.subplots(figsize=(9, 6))
+    top_10 = importance_df.head(10) # type: ignore
+    # Assign colour based on rank — top 3 get crimson, rest get blue
+    bar_colours = [
+        "crimson" if i < 3 else "lightblue"
+        for i in range(len(top_10))
     ]
-    bars = ax3.bar(
-        band_x + i * band_width,
-        counts,
-        band_width,
-        label=delay_label,
-        color=colour,
-        alpha=0.85,
+    # most important feature starts
+    ax2.barh(
+        top_10["Feature"][::-1],
+        top_10["Importance"][::-1],
+        color=bar_colours[::-1],
+        alpha=0.88,
         edgecolor="white"
     )
-    ax3.bar_label(bars, fmt="%.1f", fontsize=8, padding=2)
 
-ax3.set_xticks(band_x + band_width)
-ax3.set_xticklabels(
-    [b.replace(" months", "\nmonths") for b in age_bands], fontsize=9
-)
-ax3.set_title("WHO Milestone Violations by Age Band", fontsize=12, fontweight="bold")
-ax3.set_ylabel("Total delay score (0.5 = ambiguous, 1 = confirmed)")
-ax3.legend(fontsize=8)
+    ax2.set_title("Feature Importance (Random Forest)", fontsize=12, fontweight="bold")
+    ax2.set_xlabel("Importance Score (higher = more influential)")
+    ax2.legend(handles=[
+            mpatches.Patch(color="crimson",        label="Top 3 predictors"),
+            mpatches.Patch(color="cornflowerblue", label="Supporting features"),
+        ], fontsize=9)
 
-save_chart(fig3, "chart3_who_milestones.png")
+    save_chart(fig2, "chart2_feature_importance.png")
 
 
-# In[124]:
+    # In[123]:
 
 
-# Risk severity pie chart  
-severity_order   = ["NONE", "LOW", "MODERATE", "HIGH"]
-severity_colours = {
-    "NONE"    : "green",
-    "LOW"     : "gold",
-    "MODERATE": "orange",
-    "HIGH"    : "crimson",
-}
-severity_counts = df_model["severity"].value_counts().to_dict()
+    # Milestones by age band
+    fig3, ax3 = plt.subplots(figsize=(9, 5))
 
-fig4, axes = plt.subplots(1, 2, figsize=(12, 5))
+    age_bands  = ["12–17 months", "18–23 months", "24–29 months", "30–36 months"]
+    band_x     = np.arange(len(age_bands))
+    band_width = 0.25
 
-ax = axes[0]
-severity_values = [severity_counts.get(s, 0) for s in severity_order]
-ax.pie(severity_values, labels=severity_order,
-           colors=[severity_colours[s] for s in severity_order],
-           autopct="%1.0f%%", startangle=90,
-           textprops={"fontsize": 9})
-ax.set_title(f"Risk Severity Distribution (n={len(df_model)})")
+    for i, (delay_col, delay_label, colour) in enumerate([
+            ("milestone_word_delay",    "Vocabulary delay",     "tomato"),
+            ("milestone_combine_delay", "Word combining delay", "orange"),
+            ("milestone_respond_delay", "Name response delay",  "mediumpurple"),
+        ]):
+        # sum delay scores per age band
+        counts = [
+            df_model[df_model["milestone_band"] == band][delay_col].sum()
+            for band in age_bands
+        ]
+        bars = ax3.bar(
+            band_x + i * band_width,
+            counts,
+            band_width,
+            label=delay_label,
+            color=colour,
+            alpha=0.85,
+            edgecolor="white"
+        )
+        ax3.bar_label(bars, fmt="%.1f", fontsize=8, padding=2)
 
-ax2 = axes[1]
-ax2.bar(severity_order,
-        severity_values,
-        color=[severity_colours[s] for s in severity_order],
-        edgecolor="white", alpha=0.88)
-ax2.set_title("Severity Count by Category")
-ax2.set_ylabel("Number of Children")
-for i, v in enumerate(severity_values):
-    ax2.text(i, v + 0.2, str(v), ha="center", fontsize=9)
+    ax3.set_xticks(band_x + band_width)
+    ax3.set_xticklabels(
+        [b.replace(" months", "\nmonths") for b in age_bands], fontsize=9
+    )
+    ax3.set_title("WHO Milestone Violations by Age Band", fontsize=12, fontweight="bold")
+    ax3.set_ylabel("Total delay score (0.5 = ambiguous, 1 = confirmed)")
+    ax3.legend(fontsize=8)
 
-fig4.tight_layout()
-fig4.savefig("chart4_severity_distribution.png", dpi=150, bbox_inches="tight")
-plt.show()
-plt.close(fig4)
-print("  Saved: chart4_severity_distribution.png")
+    save_chart(fig3, "chart3_who_milestones.png")
+
+
+    # In[124]:
+
+
+    # Risk severity pie chart  
+    severity_order   = ["NONE", "LOW", "MODERATE", "HIGH"]
+    severity_colours = {
+        "NONE"    : "green",
+        "LOW"     : "gold",
+        "MODERATE": "orange",
+        "HIGH"    : "crimson",
+    }
+    severity_counts = df_model["severity"].value_counts().to_dict()
+
+    fig4, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    ax = axes[0]
+    severity_values = [severity_counts.get(s, 0) for s in severity_order]
+    ax.pie(severity_values, labels=severity_order,
+               colors=[severity_colours[s] for s in severity_order],
+               autopct="%1.0f%%", startangle=90,
+               textprops={"fontsize": 9})
+    ax.set_title(f"Risk Severity Distribution (n={len(df_model)})")
+
+    ax2 = axes[1]
+    ax2.bar(severity_order,
+            severity_values,
+            color=[severity_colours[s] for s in severity_order],
+            edgecolor="white", alpha=0.88)
+    ax2.set_title("Severity Count by Category")
+    ax2.set_ylabel("Number of Children")
+    for i, v in enumerate(severity_values):
+        ax2.text(i, v + 0.2, str(v), ha="center", fontsize=9)
+
+    fig4.tight_layout()
+    fig4.savefig("chart4_severity_distribution.png", dpi=150, bbox_inches="tight")
+    plt.show()
+    plt.close(fig4)
+    print("  Saved: chart4_severity_distribution.png")
 
 
 # In[125]:
@@ -1468,332 +1468,333 @@ def make_comparative_charts(df_model, at_risk, low_risk):
     save_chart(fig1, "comp1_income_vs_delay.png")
 
 
-# In[59]:
+    # In[59]:
 
 
-# Birth order vs speech delay risk
-fig2, ax2 = plt.subplots(figsize=(8, 5))
+    # Birth order vs speech delay risk
+    fig2, ax2 = plt.subplots(figsize=(8, 5))
 
-birth_cats = ["1st", "2nd", "3rd", "4th", "5th+"]
-birth_map  = {1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 5: "5th+"}
+    birth_cats = ["1st", "2nd", "3rd", "4th", "5th+"]
+    birth_map  = {1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 5: "5th+"}
 
-at_birth  = at_risk["birth_order_clean"].map(birth_map).value_counts()
-low_birth = low_risk["birth_order_clean"].map(birth_map).value_counts()
+    at_birth  = at_risk["birth_order_clean"].map(birth_map).value_counts()
+    low_birth = low_risk["birth_order_clean"].map(birth_map).value_counts()
 
-at_counts  = [at_birth.get(c, 0)  for c in birth_cats]
-low_counts = [low_birth.get(c, 0) for c in birth_cats]
+    at_counts  = [at_birth.get(c, 0)  for c in birth_cats]
+    low_counts = [low_birth.get(c, 0) for c in birth_cats]
 
-grouped_bar(ax2, birth_cats, at_counts, low_counts,
-                "Birth Order",
-                "Birth Order vs Speech Delay Risk")
+    grouped_bar(ax2, birth_cats, at_counts, low_counts,
+                    "Birth Order",
+                    "Birth Order vs Speech Delay Risk")
 
-save_chart(fig2, "comp2_birth_order_vs_delay.png")
-
-
-# In[60]:
+    save_chart(fig2, "comp2_birth_order_vs_delay.png")
 
 
-# caregiver education vs speech delay risk
-fig3, ax3 = plt.subplots(figsize=(8, 5))
-
-edu_cats  = ["Primary", "Secondary", "College/University"]
-edu_field = "education"
-
-at_edu  = at_risk[edu_field].str.strip().value_counts()  if edu_field in df.columns else pd.Series()
-low_edu = low_risk[edu_field].str.strip().value_counts() if edu_field in df.columns else pd.Series()
-
-at_counts  = [at_edu.get(c, 0)  for c in edu_cats]
-low_counts = [low_edu.get(c, 0) for c in edu_cats]
-
-grouped_bar(ax3, edu_cats, at_counts, low_counts,
-                "Caregiver Education Level",
-                "Caregiver Education vs Speech Delay Risk")
-
-save_chart(fig3, "comp3_education_vs_delay.png")
+    # In[60]:
 
 
-# In[61]:
+    # caregiver education vs speech delay risk
+    fig3, ax3 = plt.subplots(figsize=(8, 5))
+
+    edu_cats  = ["Primary", "Secondary", "College/University"]
+    edu_field = "education"
+
+    at_edu  = at_risk[edu_field].str.strip().value_counts()  if edu_field in df.columns else pd.Series()
+    low_edu = low_risk[edu_field].str.strip().value_counts() if edu_field in df.columns else pd.Series()
+
+    at_counts  = [at_edu.get(c, 0)  for c in edu_cats]
+    low_counts = [low_edu.get(c, 0) for c in edu_cats]
+
+    grouped_bar(ax3, edu_cats, at_counts, low_counts,
+                    "Caregiver Education Level",
+                    "Caregiver Education vs Speech Delay Risk")
+
+    save_chart(fig3, "comp3_education_vs_delay.png")
 
 
-# Ward vs speech delay risk
-ward_field = "ward"
-if ward_field in df.columns:
-    all_wards = sorted(df[ward_field].dropna().unique())
-    at_ward   = at_risk[ward_field].value_counts()
-    low_ward  = low_risk[ward_field].value_counts()
-    at_counts  = [at_ward.get(w, 0)  for w in all_wards]
-    low_counts = [low_ward.get(w, 0) for w in all_wards]
-
-fig4, ax4 = plt.subplots(figsize=(9, max(5, len(all_wards) * 0.55) if ward_field in df.columns else 5))
-
-if ward_field in df.columns:
-    y      = np.arange(len(all_wards))
-    height = 0.35
-    bars_at  = ax4.barh(y + height/2, at_counts,  height, label="At-Risk",  color=AT_COLOUR,  alpha=0.85)
-    bars_low = ax4.barh(y - height/2, low_counts, height, label="Low-Risk", color=LOW_COLOUR, alpha=0.85)
-    for bar in bars_at:
-        if bar.get_width() > 0:
-            ax4.text(bar.get_width() + 0.05, bar.get_y() + bar.get_height()/2,
-                     str(int(bar.get_width())), va="center", fontsize=8)
-    for bar in bars_low:
-        if bar.get_width() > 0:
-            ax4.text(bar.get_width() + 0.05, bar.get_y() + bar.get_height()/2,
-                     str(int(bar.get_width())), va="center", fontsize=8)
-    ax4.set_yticks(y)
-    ax4.set_yticklabels(all_wards, fontsize=9)
-    ax4.set_xlabel("Number of Children")
-    ax4.set_title("Ward vs Speech Delay Risk", fontsize=12, fontweight="bold")
-    ax4.legend(fontsize=9)
-    ax4.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
-    ax4.invert_yaxis()
-else:
-    ax4.text(0.5, 0.5, "Ward data not available",
-             ha="center", va="center", transform=ax4.transAxes)
-    ax4.set_title("Ward vs Speech Delay Risk")
-
-save_chart(fig4, "comp4_ward_vs_delay.png")
+    # In[61]:
 
 
-# In[62]:
+    # Ward vs speech delay risk
+    ward_field = "ward"
+    if ward_field in df.columns:
+        all_wards = sorted(df[ward_field].dropna().unique())
+        at_ward   = at_risk[ward_field].value_counts()
+        low_ward  = low_risk[ward_field].value_counts()
+        at_counts  = [at_ward.get(w, 0)  for w in all_wards]
+        low_counts = [low_ward.get(w, 0) for w in all_wards]
+
+    fig4, ax4 = plt.subplots(figsize=(9, max(5, len(all_wards) * 0.55) if ward_field in df.columns else 5))
+
+    if ward_field in df.columns:
+        y      = np.arange(len(all_wards))
+        height = 0.35
+        bars_at  = ax4.barh(y + height/2, at_counts,  height, label="At-Risk",  color=AT_COLOUR,  alpha=0.85)
+        bars_low = ax4.barh(y - height/2, low_counts, height, label="Low-Risk", color=LOW_COLOUR, alpha=0.85)
+        for bar in bars_at:
+            if bar.get_width() > 0:
+                ax4.text(bar.get_width() + 0.05, bar.get_y() + bar.get_height()/2,
+                         str(int(bar.get_width())), va="center", fontsize=8)
+        for bar in bars_low:
+            if bar.get_width() > 0:
+                ax4.text(bar.get_width() + 0.05, bar.get_y() + bar.get_height()/2,
+                         str(int(bar.get_width())), va="center", fontsize=8)
+        ax4.set_yticks(y)
+        ax4.set_yticklabels(all_wards, fontsize=9)
+        ax4.set_xlabel("Number of Children")
+        ax4.set_title("Ward vs Speech Delay Risk", fontsize=12, fontweight="bold")
+        ax4.legend(fontsize=9)
+        ax4.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        ax4.invert_yaxis()
+    else:
+        ax4.text(0.5, 0.5, "Ward data not available",
+                 ha="center", va="center", transform=ax4.transAxes)
+        ax4.set_title("Ward vs Speech Delay Risk")
+
+    save_chart(fig4, "comp4_ward_vs_delay.png")
 
 
-# Daily screen time vs speech delay risk
-fig5, ax5 = plt.subplots(figsize=(7, 5))
-
-screen_at  = at_risk["screen_avg_hrs"].dropna()
-screen_low = low_risk["screen_avg_hrs"].dropna()
-
- # Box plot shows median, interquartile range, and outliers
-bp = ax5.boxplot(
-        [screen_at, screen_low],
-        labels=[f"At-Risk\n(n={len(screen_at)})",
-                f"Low-Risk\n(n={len(screen_low)})"],
-        patch_artist=True,      # Fill boxes with colour
-        medianprops=dict(color="black", linewidth=2),
-        whiskerprops=dict(linewidth=1.5),
-        flierprops=dict(marker="o", markersize=5, alpha=0.6)
-    )
-
-# Apply colours to each box
-bp["boxes"][0].set_facecolor(AT_COLOUR)
-bp["boxes"][0].set_alpha(0.75)
-bp["boxes"][1].set_facecolor(LOW_COLOUR)
-bp["boxes"][1].set_alpha(0.75)
-
-# Add WHO 2-hour guideline as a dashed reference line
-ax5.axhline(2, color="firebrick", linestyle="--", linewidth=1.5,
-                label="WHO 2hr guideline")
-
-ax5.set_title("Daily Screen Time vs Speech Delay Risk",
-                  fontsize=11, fontweight="bold")
-ax5.set_ylabel("Average daily screen time (hours)")
-ax5.legend(fontsize=9)
-
- # Annotate with median values
-for i, data in enumerate([screen_at, screen_low], 1):
-    if len(data) > 0:
-            ax5.text(i, data.median() + 0.1, f"Median: {data.median():.1f}h",
-                     ha="center", fontsize=8, color="black", fontweight="bold")
-
-save_chart(fig5, "comp5_screen_time_vs_delay.png")
+    # In[62]:
 
 
-# In[63]:
+    # Daily screen time vs speech delay risk
+    fig5, ax5 = plt.subplots(figsize=(7, 5))
 
+    screen_at  = at_risk["screen_avg_hrs"].dropna()
+    screen_low = low_risk["screen_avg_hrs"].dropna()
 
-# co-viewing score vs speech delay risk
-fig6, ax6 = plt.subplots(figsize=(8, 5))
+     # Box plot shows median, interquartile range, and outliers
+    bp = ax5.boxplot(
+            [screen_at, screen_low],
+            labels=[f"At-Risk\n(n={len(screen_at)})",
+                    f"Low-Risk\n(n={len(screen_low)})"],
+            patch_artist=True,      # Fill boxes with colour
+            medianprops=dict(color="black", linewidth=2),
+            whiskerprops=dict(linewidth=1.5),
+            flierprops=dict(marker="o", markersize=5, alpha=0.6)
+        )
 
-coview_cats  = ["Never", "Rarely", "Sometimes", "Always"]
-coview_map_r = {0: "Never", 1: "Rarely", 2: "Sometimes", 3: "Always"}
+    # Apply colours to each box
+    bp["boxes"][0].set_facecolor(AT_COLOUR)
+    bp["boxes"][0].set_alpha(0.75)
+    bp["boxes"][1].set_facecolor(LOW_COLOUR)
+    bp["boxes"][1].set_alpha(0.75)
 
-at_cv  = at_risk["coview_score"].map(coview_map_r).value_counts()
-low_cv = low_risk["coview_score"].map(coview_map_r).value_counts()
+    # Add WHO 2-hour guideline as a dashed reference line
+    ax5.axhline(2, color="firebrick", linestyle="--", linewidth=1.5,
+                    label="WHO 2hr guideline")
 
-at_counts  = [at_cv.get(c, 0)  for c in coview_cats]
-low_counts = [low_cv.get(c, 0) for c in coview_cats]
+    ax5.set_title("Daily Screen Time vs Speech Delay Risk",
+                      fontsize=11, fontweight="bold")
+    ax5.set_ylabel("Average daily screen time (hours)")
+    ax5.legend(fontsize=9)
 
-grouped_bar(ax6, coview_cats, at_counts, low_counts,
-                "Co-viewing Frequency",
-                "Caregiver Co-viewing vs Speech Delay Risk")
-
-save_chart(fig6, "comp6_coview_vs_delay.png")
-
-
-# In[64]:
-
-
-# verbal interaction score vs speech delay risk
-fig7, ax7 = plt.subplots(figsize=(9, 5))
-
-verbal_cats = ["<15 min", "15-30 min", "30min-1hr", ">1 hour"]
-verbal_map_r = {0: "<15 min", 1: "15-30 min", 2: "30min-1hr", 3: ">1 hour"}
-
-at_vb  = at_risk["verbal_score"].map(verbal_map_r).value_counts()
-low_vb = low_risk["verbal_score"].map(verbal_map_r).value_counts()
-
-at_counts  = [at_vb.get(c, 0)  for c in verbal_cats]
-low_counts = [low_vb.get(c, 0) for c in verbal_cats]
-
-grouped_bar(ax7, verbal_cats, at_counts, low_counts,
-                "Daily Verbal Interaction with Child",
-                "Caregiver Verbal Interaction vs Speech Delay Risk")
-
-save_chart(fig7, "comp7_verbal_interaction_vs_delay.png")
-
-
-# In[65]:
-
-
-# Age of screen introduction vs speech delay risk
-fig8, ax8 = plt.subplots(figsize=(7, 5))
-
-intro_at  = at_risk["screen_intro_months"].dropna()
-intro_low = low_risk["screen_intro_months"].dropna()
-
-bp2 = ax8.boxplot(
-        [intro_at, intro_low],
-        labels=[f"At-Risk\n(n={len(intro_at)})",
-                f"Low-Risk\n(n={len(intro_low)})"],
-        patch_artist=True,
-        medianprops=dict(color="black", linewidth=2),
-        whiskerprops=dict(linewidth=1.5),
-        flierprops=dict(marker="o", markersize=5, alpha=0.6)
-    )
-
-bp2["boxes"][0].set_facecolor(AT_COLOUR)
-bp2["boxes"][0].set_alpha(0.75)
-bp2["boxes"][1].set_facecolor(LOW_COLOUR)
-bp2["boxes"][1].set_alpha(0.75)
-
-    # WHO 18-month recommendation line
-ax8.axhline(18, color="brown", linestyle="--", linewidth=1.5,
-                label="WHO: no screens before 18 months")
-
-    # Study's flag threshold
-ax8.axhline(12, color="darkorange", linestyle=":", linewidth=1.5,
-                label="Study flag threshold: 12 months")
-
-ax8.set_title("Age of Screen Introduction vs Speech Delay Risk",
-                  fontsize=11, fontweight="bold")
-ax8.set_ylabel("Age when screens first introduced (months)")
-ax8.legend(fontsize=8)
-
-for i, data in enumerate([intro_at, intro_low], 1):
+     # Annotate with median values
+    for i, data in enumerate([screen_at, screen_low], 1):
         if len(data) > 0:
-            ax8.text(i, data.median() + 0.5, f"Median: {data.median():.0f}m",
-                     ha="center", fontsize=8, fontweight="bold")
+                ax5.text(i, data.median() + 0.1, f"Median: {data.median():.1f}h",
+                         ha="center", fontsize=8, color="black", fontweight="bold")
 
-save_chart(fig8, "comp8_screen_intro_vs_delay.png")
-
-
-# In[66]:
+    save_chart(fig5, "comp5_screen_time_vs_delay.png")
 
 
-# Build Conclusion Chart
-print("  Conclusion dashboard...")
+    # In[63]:
 
-fig_dash, axes = plt.subplots(2, 4, figsize=(22, 10), squeeze=False)
-    # squeeze=False — same protection as the main dashboard above
-fig_dash.suptitle(
-        "Speech Delay Risk — Comparative Analysis (At-Risk vs Low-Risk)",
-        fontsize=14, fontweight="bold"
-    )
 
-    # Income ───────────────────────────────────────────────
-ax = axes[0, 0]
-_at_inc  = at_risk["income"].dropna();  _at_inc  = _at_inc[_at_inc > 0]
-_low_inc = low_risk["income"].dropna(); _low_inc = _low_inc[_low_inc > 0]
-_bp = ax.boxplot([_at_inc, _low_inc], patch_artist=True, widths=0.4,
-                 medianprops=dict(color="black", linewidth=2),
-                 flierprops=dict(marker="o", markersize=4, linestyle="none", alpha=0.5))
-_bp["boxes"][0].set_facecolor(AT_COLOUR);  _bp["boxes"][0].set_alpha(0.7)
-_bp["boxes"][1].set_facecolor(LOW_COLOUR); _bp["boxes"][1].set_alpha(0.7)
-ax.set_xticks([1, 2]); ax.set_xticklabels(["At-Risk", "Low-Risk"], fontsize=8)
-ax.set_title("Income vs Delay Risk", fontsize=10, fontweight="bold")
-ax.set_ylabel("Income (KES)")
-ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x/1000:.0f}K"))
+    # co-viewing score vs speech delay risk
+    fig6, ax6 = plt.subplots(figsize=(8, 5))
 
-    # Birth order ──────────────────────────────────────────
-ax = axes[0, 1]
-grouped_bar(ax, birth_cats,
-                [at_birth.get(c, 0) for c in birth_cats],
-                [low_birth.get(c, 0) for c in birth_cats],
-                "Birth Order", "Birth Order vs Delay Risk")
+    coview_cats  = ["Never", "Rarely", "Sometimes", "Always"]
+    coview_map_r = {0: "Never", 1: "Rarely", 2: "Sometimes", 3: "Always"}
 
-    # Education ────────────────────────────────────────────
-ax = axes[0, 2]
-grouped_bar(ax, edu_cats,
-                [at_edu.get(c, 0) for c in edu_cats],
-                [low_edu.get(c, 0) for c in edu_cats],
-                "Education", "Education vs Delay Risk", rotation=20)
+    at_cv  = at_risk["coview_score"].map(coview_map_r).value_counts()
+    low_cv = low_risk["coview_score"].map(coview_map_r).value_counts()
 
-    # Screen time ─────────────────────────────────────────────
-ax = axes[0, 3]
-bp3 = ax.boxplot(
-        [screen_at, screen_low],
-        labels=["At-Risk", "Low-Risk"],
-        patch_artist=True,
-        medianprops=dict(color="black", linewidth=2)
-    )
-bp3["boxes"][0].set_facecolor(AT_COLOUR);  bp3["boxes"][0].set_alpha(0.75)
-bp3["boxes"][1].set_facecolor(LOW_COLOUR); bp3["boxes"][1].set_alpha(0.75)
-ax.axhline(2, color="firebrick", linestyle="--", linewidth=1, label="WHO 2hr")
-ax.set_title("Screen Time vs Delay Risk", fontsize=10, fontweight="bold")
-ax.set_ylabel("Avg hrs/day")
-ax.legend(fontsize=7)
+    at_counts  = [at_cv.get(c, 0)  for c in coview_cats]
+    low_counts = [low_cv.get(c, 0) for c in coview_cats]
 
-    # Co-viewing ───────────────────────────────────────────
-ax = axes[1, 0]
-grouped_bar(ax, coview_cats,
-                [at_cv.get(c, 0) for c in coview_cats],
-                [low_cv.get(c, 0) for c in coview_cats],
-                "Co-viewing", "Co-viewing vs Delay Risk")
+    grouped_bar(ax6, coview_cats, at_counts, low_counts,
+                    "Co-viewing Frequency",
+                    "Caregiver Co-viewing vs Speech Delay Risk")
 
-    # Verbal interaction ───────────────────────────────────
-ax = axes[1, 1]
-grouped_bar(ax, verbal_cats,
-                [at_vb.get(c, 0) for c in verbal_cats],
-                [low_vb.get(c, 0) for c in verbal_cats],
-                "Verbal Interaction", "Verbal Interaction vs Delay Risk")
+    save_chart(fig6, "comp6_coview_vs_delay.png")
 
-    # Screen introduction
-ax = axes[1, 2]
-bp4 = ax.boxplot(
-        [intro_at, intro_low],
-        labels=["At-Risk", "Low-Risk"],
-        patch_artist=True,
-        medianprops=dict(color="black", linewidth=2)
-    )
-bp4["boxes"][0].set_facecolor(AT_COLOUR);  bp4["boxes"][0].set_alpha(0.75)
-bp4["boxes"][1].set_facecolor(LOW_COLOUR); bp4["boxes"][1].set_alpha(0.75)
-ax.axhline(18, color="firebrick", linestyle="--", linewidth=1, label="WHO 18m")
-ax.axhline(12, color="darkorange", linestyle=":", linewidth=1, label="Flag 12m")
-ax.set_title("Screen Intro Age vs Delay Risk", fontsize=10, fontweight="bold")
-ax.set_ylabel("Age (months)")
-ax.legend(fontsize=7)
 
-    # Ward 
-ax = axes[1, 3]
-if ward_field in df.columns:
-    _y = np.arange(len(all_wards)); _h = 0.35
-    _b1 = ax.barh(_y + _h/2, [at_ward.get(w, 0) for w in all_wards],  _h, label="At-Risk",  color=AT_COLOUR,  alpha=0.85)
-    _b2 = ax.barh(_y - _h/2, [low_ward.get(w, 0) for w in all_wards], _h, label="Low-Risk", color=LOW_COLOUR, alpha=0.85)
-    ax.set_yticks(_y); ax.set_yticklabels(all_wards, fontsize=7)
-    ax.set_title("Ward vs Delay Risk", fontsize=10, fontweight="bold")
-    ax.set_xlabel("Count"); ax.legend(fontsize=7); ax.invert_yaxis()
-    ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
-else:
-    ax.text(0.5, 0.5, "Ward data\nnot available",
-            ha="center", va="center", transform=ax.transAxes)
-    ax.set_title("Ward vs Delay Risk")
+    # In[64]:
 
-fig_dash.tight_layout()
-fig_dash.savefig("comp_dashboard.png", dpi=150, bbox_inches="tight")
-plt.show()
-plt.close(fig_dash)
-print("  Saved: comp_dashboard.png")
-print("  Comparative charts complete.")
+
+    # verbal interaction score vs speech delay risk
+    fig7, ax7 = plt.subplots(figsize=(9, 5))
+
+    verbal_cats = ["<15 min", "15-30 min", "30min-1hr", ">1 hour"]
+    verbal_map_r = {0: "<15 min", 1: "15-30 min", 2: "30min-1hr", 3: ">1 hour"}
+
+    at_vb  = at_risk["verbal_score"].map(verbal_map_r).value_counts()
+    low_vb = low_risk["verbal_score"].map(verbal_map_r).value_counts()
+
+    at_counts  = [at_vb.get(c, 0)  for c in verbal_cats]
+    low_counts = [low_vb.get(c, 0) for c in verbal_cats]
+
+    grouped_bar(ax7, verbal_cats, at_counts, low_counts,
+                    "Daily Verbal Interaction with Child",
+                    "Caregiver Verbal Interaction vs Speech Delay Risk")
+
+    save_chart(fig7, "comp7_verbal_interaction_vs_delay.png")
+
+
+    # In[65]:
+
+
+    # Age of screen introduction vs speech delay risk
+    fig8, ax8 = plt.subplots(figsize=(7, 5))
+
+    intro_at  = at_risk["screen_intro_months"].dropna()
+    intro_low = low_risk["screen_intro_months"].dropna()
+
+    bp2 = ax8.boxplot(
+            [intro_at, intro_low],
+            labels=[f"At-Risk\n(n={len(intro_at)})",
+                    f"Low-Risk\n(n={len(intro_low)})"],
+            patch_artist=True,
+            medianprops=dict(color="black", linewidth=2),
+            whiskerprops=dict(linewidth=1.5),
+            flierprops=dict(marker="o", markersize=5, alpha=0.6)
+        )
+
+    bp2["boxes"][0].set_facecolor(AT_COLOUR)
+    bp2["boxes"][0].set_alpha(0.75)
+    bp2["boxes"][1].set_facecolor(LOW_COLOUR)
+    bp2["boxes"][1].set_alpha(0.75)
+
+        # WHO 18-month recommendation line
+    ax8.axhline(18, color="brown", linestyle="--", linewidth=1.5,
+                    label="WHO: no screens before 18 months")
+
+        # Study's flag threshold
+    ax8.axhline(12, color="darkorange", linestyle=":", linewidth=1.5,
+                    label="Study flag threshold: 12 months")
+
+    ax8.set_title("Age of Screen Introduction vs Speech Delay Risk",
+                      fontsize=11, fontweight="bold")
+    ax8.set_ylabel("Age when screens first introduced (months)")
+    ax8.legend(fontsize=8)
+
+    for i, data in enumerate([intro_at, intro_low], 1):
+            if len(data) > 0:
+                ax8.text(i, data.median() + 0.5, f"Median: {data.median():.0f}m",
+                         ha="center", fontsize=8, fontweight="bold")
+
+    save_chart(fig8, "comp8_screen_intro_vs_delay.png")
+
+
+    # In[66]:
+
+
+    # Build Conclusion Chart
+    print("  Conclusion dashboard...")
+
+    fig_dash, axes = plt.subplots(2, 4, figsize=(22, 10), squeeze=False)
+        # squeeze=False — same protection as the main dashboard above
+    fig_dash.suptitle(
+            "Speech Delay Risk — Comparative Analysis (At-Risk vs Low-Risk)",
+            fontsize=14, fontweight="bold"
+        )
+
+        # Income ───────────────────────────────────────────────
+    ax = axes[0, 0]
+    _at_inc  = at_risk["income"].dropna();  _at_inc  = _at_inc[_at_inc > 0]
+    _low_inc = low_risk["income"].dropna(); _low_inc = _low_inc[_low_inc > 0]
+    _bp = ax.boxplot([_at_inc, _low_inc], patch_artist=True, widths=0.4,
+                     medianprops=dict(color="black", linewidth=2),
+                     flierprops=dict(marker="o", markersize=4, linestyle="none", alpha=0.5))
+    _bp["boxes"][0].set_facecolor(AT_COLOUR);  _bp["boxes"][0].set_alpha(0.7)
+    _bp["boxes"][1].set_facecolor(LOW_COLOUR); _bp["boxes"][1].set_alpha(0.7)
+    ax.set_xticks([1, 2]); ax.set_xticklabels(["At-Risk", "Low-Risk"], fontsize=8)
+    ax.set_title("Income vs Delay Risk", fontsize=10, fontweight="bold")
+    ax.set_ylabel("Income (KES)")
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x/1000:.0f}K"))
+
+        # Birth order ──────────────────────────────────────────
+    ax = axes[0, 1]
+    grouped_bar(ax, birth_cats,
+                    [at_birth.get(c, 0) for c in birth_cats],
+                    [low_birth.get(c, 0) for c in birth_cats],
+                    "Birth Order", "Birth Order vs Delay Risk")
+
+        # Education ────────────────────────────────────────────
+    ax = axes[0, 2]
+    grouped_bar(ax, edu_cats,
+                    [at_edu.get(c, 0) for c in edu_cats],
+                    [low_edu.get(c, 0) for c in edu_cats],
+                    "Education", "Education vs Delay Risk", rotation=20)
+
+        # Screen time ─────────────────────────────────────────────
+    ax = axes[0, 3]
+    bp3 = ax.boxplot(
+            [screen_at, screen_low],
+            labels=["At-Risk", "Low-Risk"],
+            patch_artist=True,
+            medianprops=dict(color="black", linewidth=2)
+        )
+    bp3["boxes"][0].set_facecolor(AT_COLOUR);  bp3["boxes"][0].set_alpha(0.75)
+    bp3["boxes"][1].set_facecolor(LOW_COLOUR); bp3["boxes"][1].set_alpha(0.75)
+    ax.axhline(2, color="firebrick", linestyle="--", linewidth=1, label="WHO 2hr")
+    ax.set_title("Screen Time vs Delay Risk", fontsize=10, fontweight="bold")
+    ax.set_ylabel("Avg hrs/day")
+    ax.legend(fontsize=7)
+
+        # Co-viewing ───────────────────────────────────────────
+    ax = axes[1, 0]
+    grouped_bar(ax, coview_cats,
+                    [at_cv.get(c, 0) for c in coview_cats],
+                    [low_cv.get(c, 0) for c in coview_cats],
+                    "Co-viewing", "Co-viewing vs Delay Risk")
+
+        # Verbal interaction ───────────────────────────────────
+    ax = axes[1, 1]
+    grouped_bar(ax, verbal_cats,
+                    [at_vb.get(c, 0) for c in verbal_cats],
+                    [low_vb.get(c, 0) for c in verbal_cats],
+                    "Verbal Interaction", "Verbal Interaction vs Delay Risk")
+
+        # Screen introduction
+    ax = axes[1, 2]
+    bp4 = ax.boxplot(
+            [intro_at, intro_low],
+            labels=["At-Risk", "Low-Risk"],
+            patch_artist=True,
+            medianprops=dict(color="black", linewidth=2)
+        )
+    bp4["boxes"][0].set_facecolor(AT_COLOUR);  bp4["boxes"][0].set_alpha(0.75)
+    bp4["boxes"][1].set_facecolor(LOW_COLOUR); bp4["boxes"][1].set_alpha(0.75)
+    ax.axhline(18, color="firebrick", linestyle="--", linewidth=1, label="WHO 18m")
+    ax.axhline(12, color="darkorange", linestyle=":", linewidth=1, label="Flag 12m")
+    ax.set_title("Screen Intro Age vs Delay Risk", fontsize=10, fontweight="bold")
+    ax.set_ylabel("Age (months)")
+    ax.legend(fontsize=7)
+
+        # Ward 
+    ax = axes[1, 3]
+    if ward_field in df.columns:
+        _y = np.arange(len(all_wards)); _h = 0.35
+        _b1 = ax.barh(_y + _h/2, [at_ward.get(w, 0) for w in all_wards],  _h, label="At-Risk",  color=AT_COLOUR,  alpha=0.85)
+        _b2 = ax.barh(_y - _h/2, [low_ward.get(w, 0) for w in all_wards], _h, label="Low-Risk", color=LOW_COLOUR, alpha=0.85)
+        ax.set_yticks(_y); ax.set_yticklabels(all_wards, fontsize=7)
+        ax.set_title("Ward vs Delay Risk", fontsize=10, fontweight="bold")
+        ax.set_xlabel("Count"); ax.legend(fontsize=7); ax.invert_yaxis()
+        ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    else:
+        ax.text(0.5, 0.5, "Ward data\nnot available",
+                ha="center", va="center", transform=ax.transAxes)
+        ax.set_title("Ward vs Delay Risk")
+
+    fig_dash.tight_layout()
+    fig_dash.savefig("comp_dashboard.png", dpi=150, bbox_inches="tight")
+    plt.show()
+    plt.close(fig_dash)
+    print("  Saved: comp_dashboard.png")
+    print("  Comparative charts complete.")
+
 
 
 
@@ -2046,8 +2047,6 @@ if __name__ == '__main__':
         low_risk = df_model[df_model["speech_delay_label"] == 0]
 
         make_charts(results, importance_df, X, y, df_model)
-        make_income_chart(df_model)
-        make_comparative_charts(df_model, at_risk, low_risk)
         make_income_chart(df_model)
         make_comparative_charts(df_model, at_risk, low_risk)
 
