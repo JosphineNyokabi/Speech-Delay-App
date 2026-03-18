@@ -1129,14 +1129,7 @@ def get_feature_importance(X, y, feature_names):
 
 
 # Run full modeling workflow to produce outputs
-df_model = engineer_label(df)
-X, y, feature_names = prepare_features(df_model)
-results, models = train_and_evaluate(X, y)
-importance_df = get_feature_importance(X, y, feature_names)
-
-print("\n[Done] Model run complete.")
-print("Results summary:")
-print(pd.DataFrame(results).T.sort_values('f1', ascending=False).round(3))
+# All execution moved inside if __name__ == "__main__" below
 
 
 # In[120]:
@@ -1154,22 +1147,18 @@ def save_chart(figure, filename):
 
 def make_charts(results, importance_df, X, y, df):
     print("\n[Step 7] Generating charts...")
-
-
-# In[121]:
-
-
-# Model performance chart
-fig1, ax1 = plt.subplots(figsize=(8, 5))
-
-model_names = list(results.keys())
-x_positions = np.arange(len(model_names))   # [0, 1, 2]
-bar_width   = 0.25
-for i, (metric, colour, label) in enumerate([
-        ("accuracy", "blue",     "ACCURACY"),
-        ("f1",       "green","F1 SCORE"),
-        ("roc_auc",  "orange",    "ROC-AUC"),
-    ]):
+    
+    # Model performance chart
+    fig1, ax1 = plt.subplots(figsize=(8, 5))
+    
+    model_names = list(results.keys())
+    x_positions = np.arange(len(model_names))   # [0, 1, 2]
+    bar_width   = 0.25
+    for i, (metric, colour, label) in enumerate([
+            ("accuracy", "blue",     "ACCURACY"),
+            ("f1",       "green","F1 SCORE"),
+            ("roc_auc",  "orange",    "ROC-AUC"),
+        ]):
         values = [results[m][metric] for m in model_names]
         bars = ax1.bar(
             x_positions + i * bar_width,
@@ -1192,17 +1181,11 @@ for i, (metric, colour, label) in enumerate([
         ax1.axhline(0.80, color="dimgray", linestyle="--", linewidth=0.8,
                 label="0.80 reference line")
 
-        save_chart(fig1, "chart1_model_performance.png")
+    save_chart(fig1, "chart1_model_performance.png")
 
-
-
-
-# In[122]:
-
-
-# Feature performance chart
-fig2, ax2 = plt.subplots(figsize=(9, 6))
-top_10 = importance_df.head(10)
+    # Feature performance chart
+    fig2, ax2 = plt.subplots(figsize=(9, 6))
+    top_10 = importance_df.head(10)
 # Assign colour based on rank — top 3 get crimson, rest get blue
 bar_colours = [
         "crimson" if i < 3 else "lightblue"
@@ -1272,7 +1255,7 @@ for i, (delay_col, delay_label, colour) in enumerate([
 # In[124]:
 
 
-# Risk severity pie chart
+# Risk severity pie chart  
 severity_order   = ["NONE", "LOW", "MODERATE", "HIGH"]
 severity_colours = {
     "NONE"    : "green",
@@ -1315,49 +1298,40 @@ print("  Saved: chart4_severity_distribution.png")
 # Prepare income data
 fig5, ax5 = plt.subplots(figsize=(7, 5))
 
-if 'df_model' in globals() and 'income' in df_model.columns:
-    income_data = df_model['income'].dropna()
-elif 'df' in globals() and 'income' in df.columns:
+if 'income' in df.columns:
     income_data = df['income'].dropna()
 else:
     income_data = pd.Series(dtype=float)
 
 income_reported = income_data[income_data > 0]
-n_no_income = len(income_data.reindex(df_model.index if 'df_model' in globals() else df.index, fill_value=np.nan)) - len(income_reported) if False else (len(df_model) if 'df_model' in globals() else len(df)) - len(income_reported)
+n_no_income = (len(df_model) if 'df_model' in globals() else len(df)) - len(income_reported)
 
 if len(income_reported) > 0:
     import random as _random
     _random.seed(42)
-
     ax5.boxplot(
-        income_reported,
-        vert=True,
-        patch_artist=True,
-        widths=0.4,
+        income_reported, vert=True, patch_artist=True, widths=0.4,
         medianprops=dict(color="darkorange", linewidth=2.5),
         boxprops=dict(facecolor="cornflowerblue", alpha=0.6),
         whiskerprops=dict(color="steelblue", linewidth=1.5),
         capprops=dict(color="steelblue", linewidth=1.5),
         flierprops=dict(marker="o", markerfacecolor="tomato", markersize=6, linestyle="none", alpha=0.7),
     )
-
     jitter = [1 + _random.uniform(-0.12, 0.12) for _ in income_reported]
     ax5.scatter(jitter, income_reported, color="steelblue", alpha=0.5, s=28, zorder=5, label="Participant")
-
     med = income_reported.median()
     q1  = income_reported.quantile(0.25)
     q3  = income_reported.quantile(0.75)
     ax5.text(1.28, med, f"Median: KES {med:,.0f}", va="center", fontsize=8.5, color="darkorange")
     ax5.text(1.28, q1,  f"Q1: KES {q1:,.0f}",     va="center", fontsize=8,   color="steelblue")
     ax5.text(1.28, q3,  f"Q3: KES {q3:,.0f}",     va="center", fontsize=8,   color="steelblue")
-
     ax5.set_title("Monthly Household Income Distribution", fontsize=11, fontweight="bold")
     ax5.set_ylabel("Monthly Income (KES)")
     ax5.set_xticks([1])
-    ax5.set_xticklabels([f"Participants who\nreported income\n(n={len(income_reported)})"], fontsize=9)
+    ax5.set_xticklabels([f"Participants who reported income\n(n={len(income_reported)})"], fontsize=9)
     ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"KES {x:,.0f}"))
     ax5.legend(fontsize=9, loc="upper right")
-
+    
 else:
     ax5.text(0.5, 0.5, "No income data", ha="center", va="center", transform=ax5.transAxes)
     ax5.set_title("Monthly Household Income (KES)")
@@ -1373,83 +1347,57 @@ print("  Saved: chart5_income_distribution.png")
 
 
 # Caregiver age chart
-if 'df_model' in globals() and 'caregiver_age' in df_model.columns:
-        age_data = df_model['caregiver_age'].dropna()
-elif 'df' in globals() and 'caregiver_age' in df.columns:
-        age_data = df['caregiver_age'].dropna()
+if 'caregiver_age' in df.columns:
+    age_data = df['caregiver_age'].dropna()
 else:
-        age_data = pd.Series(dtype=float)
-
-if isinstance(axes, np.ndarray):
-        if axes.ndim == 2 and axes.shape[0] > 1 and axes.shape[1] > 2:
-                ax = axes[1, 2]
-        else:
-                ax = axes.flat[0]
-else:
-        ax = axes
+    age_data = pd.Series(dtype=float)
 
 if len(age_data) > 0:
-        ax.hist(age_data, bins=8, color="cornflowerblue",
-                edgecolor="white", alpha=0.85)
-        ax.axvline(age_data.median(), color="navy", linestyle="--",
-                   linewidth=1.5, label=f"Median: {age_data.median():.0f} yrs")
-        ax.set_title("Caregiver Age Distribution")
-        ax.set_xlabel("Age (years)")
-        ax.set_ylabel("Number of caregivers")
-        ax.legend(fontsize=9)
-else:
-        ax.text(0.5, 0.5, "No age data available", ha="center", va="center",
-                transform=ax.transAxes)
-        ax.set_title("Caregiver Age Distribution")
-
-fig_all = ax.figure
-save_chart(fig_all, "speech_delay_results.png")
-
-
-# In[56]:
-
-
-# Decision tree visualization
-imputer  = SimpleImputer(strategy="median")
-X_filled = imputer.fit_transform(X)
-viz_tree = DecisionTreeClassifier(
-        max_depth=3, class_weight="balanced", random_state=42
-    )
-viz_tree.fit(X_filled, y)
-
-fig_tree, ax_tree = plt.subplots(figsize=(16, 7))
-plot_tree(
-        viz_tree,
-        feature_names=list(X.columns),
-        class_names=["Low Risk", "At Risk"],
-        filled=True,        # Colour nodes by majority class
-        rounded=True,       # Round the node corners
-        fontsize=8,
-        ax=ax_tree,
-        impurity=False,     # Hide Gini score — keeps diagram clean
-        proportion=True     # Show class proportions instead of raw counts
-    )
-ax_tree.set_title(
-        "Decision Tree – Speech Delay Risk Prediction\n"
-        "(WHO Milestone + Behavioural + Socioeconomic Features)",
-        fontsize=12, fontweight="bold"
-    )
-
-save_chart(fig_tree, "speech_delay_decision_tree.png")
+    ax = axes[-1, -1] if isinstance(axes, np.ndarray) else axes
+    ax.hist(age_data, bins=8, color="cornflowerblue",
+            edgecolor="white", alpha=0.85)
+    ax.axvline(age_data.median(), color="navy", linestyle="--",
+               linewidth=1.5, label=f"Median: {age_data.median():.0f} yrs")
+    ax.set_title("Caregiver Age Distribution")
+    ax.set_xlabel("Age (years)")
+    ax.set_ylabel("Number of caregivers")
+    ax.legend(fontsize=9)
+    
+    # Decision tree visualization
+    imputer  = SimpleImputer(strategy="median")
+    X_filled = imputer.fit_transform(X)
+    viz_tree = DecisionTreeClassifier(
+            max_depth=3, class_weight="balanced", random_state=42
+        )
+    viz_tree.fit(X_filled, y)
+    
+    fig_tree, ax_tree = plt.subplots(figsize=(16, 7))
+    plot_tree(
+            viz_tree,
+            feature_names=list(X.columns),
+            class_names=["Low Risk", "At Risk"],
+            filled=True,
+            rounded=True,
+            fontsize=8,
+            ax=ax_tree,
+            impurity=False,
+            proportion=True
+        )
+    ax_tree.set_title(
+            "Decision Tree – Speech Delay Risk Prediction\n"
+            "(WHO Milestone + Behavioural + Socioeconomic Features)",
+            fontsize=12, fontweight="bold"
+        )
+    
+    save_chart(fig_tree, "speech_delay_decision_tree.png")
 
 
 # In[57]:
 
 
-# Comparative Charts
-
-# Define colours globally for all comparative charts
-AT_COLOUR  = "crimson"
-LOW_COLOUR = "steelblue"
-
-# Define at_risk and low_risk globally for use in all comparative chart functions
-at_risk  = df_model[df_model["speech_delay_label"] == 1]
-low_risk = df_model[df_model["speech_delay_label"] == 0]
+# Comparative Charts - Define colours and data globally for all comparative chart functions
+AT_COLOUR = "tomato"
+LOW_COLOUR = "cornflowerblue"
 
 def save_chart(figure, filename):
     figure.tight_layout()
@@ -1499,40 +1447,30 @@ def grouped_bar(ax, categories, at_counts, low_counts,
     ax.legend(fontsize=9)
 
 
-def make_comparative_charts(df_model):
+def make_comparative_charts(df_model, at_risk, low_risk):
     print("\n[Step 7B] Generating comparative charts...")
-    # at_risk and low_risk are now defined globally above
-    global at_risk, low_risk
 
-# income vs speech delay risk
-fig1, ax1 = plt.subplots(figsize=(8, 5))
+    # income vs speech delay risk
+    fig1, ax1 = plt.subplots(figsize=(8, 5))
 
-at_inc_vals  = at_risk["income"].dropna()
-at_inc_vals  = at_inc_vals[at_inc_vals > 0]
-low_inc_vals = low_risk["income"].dropna()
-low_inc_vals = low_inc_vals[low_inc_vals > 0]
+at_inc_vals  = at_risk["income"].dropna();  at_inc_vals  = at_inc_vals[at_inc_vals > 0]
+low_inc_vals = low_risk["income"].dropna(); low_inc_vals = low_inc_vals[low_inc_vals > 0]
 
 bp = ax1.boxplot(
-    [at_inc_vals, low_inc_vals],
-    patch_artist=True,
-    widths=0.4,
+    [at_inc_vals, low_inc_vals], patch_artist=True, widths=0.4,
     medianprops=dict(color="black", linewidth=2),
-    whiskerprops=dict(linewidth=1.5),
-    capprops=dict(linewidth=1.5),
+    whiskerprops=dict(linewidth=1.5), capprops=dict(linewidth=1.5),
     flierprops=dict(marker="o", markersize=5, linestyle="none", alpha=0.6),
 )
 bp["boxes"][0].set_facecolor(AT_COLOUR);  bp["boxes"][0].set_alpha(0.7)
 bp["boxes"][1].set_facecolor(LOW_COLOUR); bp["boxes"][1].set_alpha(0.7)
-
 ax1.set_xticks([1, 2])
 ax1.set_xticklabels([f"At-Risk (n={len(at_inc_vals)})", f"Low-Risk (n={len(low_inc_vals)})"], fontsize=10)
 ax1.set_ylabel("Monthly Income (KES)")
 ax1.set_title("Income vs Speech Delay Risk\nRaw KES — no standardisation", fontsize=11, fontweight="bold")
 ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"KES {x:,.0f}"))
-ax1.text(0.98, 0.95,
-             "Lower income → higher at-risk proportion",
-             transform=ax1.transAxes, ha="right", va="top",
-             fontsize=8, color="dimgray", style="italic")
+ax1.text(0.98, 0.95, "Lower income → higher at-risk proportion",
+         transform=ax1.transAxes, ha="right", va="top", fontsize=8, color="dimgray", style="italic")
 
 save_chart(fig1, "comp1_income_vs_delay.png")
 
@@ -1587,20 +1525,19 @@ save_chart(fig3, "comp3_education_vs_delay.png")
 # Ward vs speech delay risk
 ward_field = "ward"
 if ward_field in df.columns:
-    all_wards  = sorted(df[ward_field].dropna().unique())
-    at_ward    = at_risk[ward_field].value_counts()
-    low_ward   = low_risk[ward_field].value_counts()
+    all_wards = sorted(df[ward_field].dropna().unique())
+    at_ward   = at_risk[ward_field].value_counts()
+    low_ward  = low_risk[ward_field].value_counts()
     at_counts  = [at_ward.get(w, 0)  for w in all_wards]
     low_counts = [low_ward.get(w, 0) for w in all_wards]
 
-fig4, ax4 = plt.subplots(figsize=(9, max(5, len(all_wards) * 0.55)))
+fig4, ax4 = plt.subplots(figsize=(9, max(5, len(all_wards) * 0.55) if ward_field in df.columns else 5))
 
 if ward_field in df.columns:
     y      = np.arange(len(all_wards))
     height = 0.35
     bars_at  = ax4.barh(y + height/2, at_counts,  height, label="At-Risk",  color=AT_COLOUR,  alpha=0.85)
     bars_low = ax4.barh(y - height/2, low_counts, height, label="Low-Risk", color=LOW_COLOUR, alpha=0.85)
-
     for bar in bars_at:
         if bar.get_width() > 0:
             ax4.text(bar.get_width() + 0.05, bar.get_y() + bar.get_height()/2,
@@ -1609,7 +1546,6 @@ if ward_field in df.columns:
         if bar.get_width() > 0:
             ax4.text(bar.get_width() + 0.05, bar.get_y() + bar.get_height()/2,
                      str(int(bar.get_width())), va="center", fontsize=8)
-
     ax4.set_yticks(y)
     ax4.set_yticklabels(all_wards, fontsize=9)
     ax4.set_xlabel("Number of Children")
@@ -1634,7 +1570,7 @@ fig5, ax5 = plt.subplots(figsize=(7, 5))
 screen_at  = at_risk["screen_avg_hrs"].dropna()
 screen_low = low_risk["screen_avg_hrs"].dropna()
 
-# Box plot shows median, interquartile range, and outliers
+ # Box plot shows median, interquartile range, and outliers
 bp = ax5.boxplot(
         [screen_at, screen_low],
         labels=[f"At-Risk\n(n={len(screen_at)})",
@@ -1660,7 +1596,7 @@ ax5.set_title("Daily Screen Time vs Speech Delay Risk",
 ax5.set_ylabel("Average daily screen time (hours)")
 ax5.legend(fontsize=9)
 
-# Annotate with median values
+ # Annotate with median values
 for i, data in enumerate([screen_at, screen_low], 1):
     if len(data) > 0:
             ax5.text(i, data.median() + 0.1, f"Median: {data.median():.1f}h",
@@ -2091,44 +2027,63 @@ def run_demo_prediction(trained_model, fitted_imputer, feature_names):
 
 # Main Execution
 if __name__ == '__main__':
+    import os, pickle
+
     print("=" * 60)
     print("  SPEECH DELAY PREDICTION MODEL ")
     print("=" * 60)
-    # Load and prepare data
-    def load_data(filepath):
-        df = pd.read_csv(filepath)
-        return df
-    
-    df = load_data('Data_Download_1.csv')
-    df = clean_data(df)
-    df = engineer_label(df)
-    X, y, feature_names = prepare_features(df)
-# Ensure samples are sufficient for training
-if len(X) < 10:
-    print("\n  Not enough data yet (minimum 10 samples needed).")
-    print("  Keep collecting responses and run again.")
 
-else: 
-    results, models = train_and_evaluate(X, y)
-    importance_df = get_feature_importance(X, y, feature_names)
-    make_charts(results, importance_df, X, y, df)
-    make_comparative_charts(df)
-    # Train final model on all data for web interface use
-    from sklearn.impute import SimpleImputer
-    final_imputer = SimpleImputer(strategy="median")
-    X_filled      = final_imputer.fit_transform(X)
-    final_model   = RandomForestClassifier(
-        n_estimators=200, class_weight="balanced", random_state=42
-    )
-    final_model.fit(X_filled, y)
-    # Run a demo prediction with example data
-    run_demo_prediction(final_model, final_imputer, feature_names)
+    # Run full modeling workflow
+    df_model = engineer_label(df)
+    X, y, feature_names = prepare_features(df_model)
 
+    if len(X) < 10:
+        print("\n  Not enough data yet (minimum 10 samples needed).")
+        print("  Keep collecting responses and run again.")
+    else:
+        results, models = train_and_evaluate(X, y)
+        importance_df = get_feature_importance(X, y, feature_names)
 
-# In[72]:
+        print("\n[Done] Model run complete.")
+        print("Results summary:")
+        print(pd.DataFrame(results).T.sort_values('f1', ascending=False).round(3))
 
+        # Define at-risk and low-risk groups for comparative charts BEFORE using them
+        at_risk = df_model[df_model["speech_delay_label"] == 1]
+        low_risk = df_model[df_model["speech_delay_label"] == 0]
 
-# save and download cleaned dataset for future use
-cleaned_filepath = "cleaned_speech_delay_data.csv"
-df.to_csv(cleaned_filepath, index=False)
+        # Define at-risk and low-risk groups for comparative charts
+        at_risk = df_model[df_model["speech_delay_label"] == 1]
+        low_risk = df_model[df_model["speech_delay_label"] == 0]
+
+        make_charts(results, importance_df, X, y, df_model)
+        make_comparative_charts(df_model, at_risk, low_risk)
+
+        # Train final model on all data for web interface use
+        from sklearn.impute import SimpleImputer
+        final_imputer = SimpleImputer(strategy="median")
+        X_filled      = final_imputer.fit_transform(X)
+        final_model   = RandomForestClassifier(
+            n_estimators=200, class_weight="balanced", random_state=42
+        )
+        final_model.fit(X_filled, y)
+
+        # Run a demo prediction with example data
+        run_demo_prediction(final_model, final_imputer, feature_names)
+
+        # Save model artifacts for web interface
+        os.makedirs("model_artifacts", exist_ok=True)
+        with open("model_artifacts/trained_model.pkl", "wb") as f:
+            pickle.dump(final_model, f)
+        with open("model_artifacts/fitted_imputer.pkl", "wb") as f:
+            pickle.dump(final_imputer, f)
+        with open("model_artifacts/feature_names.pkl", "wb") as f:
+            pickle.dump(feature_names, f)
+        print("\n  Model artifacts saved to model_artifacts/")
+
+        # save and download cleaned dataset for future use
+        cleaned_filepath = "cleaned_speech_delay_data.csv"
+        df_model.to_csv(cleaned_filepath, index=False)
+        print(f"  Cleaned dataset saved to {cleaned_filepath}")
+
 
