@@ -1145,7 +1145,7 @@ def save_chart(figure, filename):
     print(f"  Saved: {filename}")
 
 
-def make_charts(results, importance_df, X, y, df):
+def make_charts(results, importance_df, X, y, df_model):
     print("\n[Step 7] Generating charts...")
     
     # Model performance chart
@@ -1156,8 +1156,8 @@ def make_charts(results, importance_df, X, y, df):
     bar_width   = 0.25
     for i, (metric, colour, label) in enumerate([
             ("accuracy", "blue",     "ACCURACY"),
-            ("f1",       "green","F1 SCORE"),
-            ("roc_auc",  "orange",    "ROC-AUC"),
+            ("f1",       "green",    "F1 SCORE"),
+            ("roc_auc",  "orange",   "ROC-AUC"),
         ]):
         values = [results[m][metric] for m in model_names]
         bars = ax1.bar(
@@ -1168,37 +1168,38 @@ def make_charts(results, importance_df, X, y, df):
             color=colour,
             alpha=0.85,
             edgecolor="white"
-    )
+        )
         ax1.bar_label(bars, fmt="%.2f", fontsize=8, padding=2)
-        ax1.set_xticks(x_positions + bar_width)
-        ax1.set_xticklabels(
+    
+    ax1.set_xticks(x_positions + bar_width)
+    ax1.set_xticklabels(
         [m.replace(" ", "\n") for m in model_names], fontsize=10
     )
-        ax1.set_ylim(0, 1.15)
-        ax1.set_title("Model Performance Comparison", fontsize=12, fontweight="bold")
-        ax1.set_ylabel("Score (0 = worst, 1 = best)")
-        ax1.legend(fontsize=9)
-        ax1.axhline(0.80, color="dimgray", linestyle="--", linewidth=0.8,
-                label="0.80 reference line")
+    ax1.set_ylim(0, 1.15)
+    ax1.set_title("Model Performance Comparison", fontsize=12, fontweight="bold")
+    ax1.set_ylabel("Score (0 = worst, 1 = best)")
+    ax1.legend(fontsize=9)
+    ax1.axhline(0.80, color="dimgray", linestyle="--", linewidth=0.8,
+            label="0.80 reference line")
 
     save_chart(fig1, "chart1_model_performance.png")
 
-    # Feature performance chart
-    fig2, ax2 = plt.subplots(figsize=(9, 6))
-    top_10 = importance_df.head(10)
+# Feature performance chart
+fig2, ax2 = plt.subplots(figsize=(9, 6))
+top_10 = importance_df.head(10) # type: ignore
 # Assign colour based on rank — top 3 get crimson, rest get blue
 bar_colours = [
-        "crimson" if i < 3 else "lightblue"
-        for i in range(len(top_10))
-    ]
+    "crimson" if i < 3 else "lightblue"
+    for i in range(len(top_10))
+]
 # most important feature starts
 ax2.barh(
-        top_10["Feature"][::-1],
-        top_10["Importance"][::-1],
-        color=bar_colours[::-1],
-        alpha=0.88,
-        edgecolor="white"
-    )
+    top_10["Feature"][::-1],
+    top_10["Importance"][::-1],
+    color=bar_colours[::-1],
+    alpha=0.88,
+    edgecolor="white"
+)
 
 ax2.set_title("Feature Importance (Random Forest)", fontsize=12, fontweight="bold")
 ax2.set_xlabel("Importance Score (higher = more influential)")
@@ -1225,31 +1226,31 @@ for i, (delay_col, delay_label, colour) in enumerate([
         ("milestone_combine_delay", "Word combining delay", "orange"),
         ("milestone_respond_delay", "Name response delay",  "mediumpurple"),
     ]):
-# sum delay scores per age band
+    # sum delay scores per age band
     counts = [
-            df_model[df_model["milestone_band"] == band][delay_col].sum()
-            for band in age_bands
-        ]
+        df_model[df_model["milestone_band"] == band][delay_col].sum()
+        for band in age_bands
+    ]
     bars = ax3.bar(
-            band_x + i * band_width,
-            counts,
-            band_width,
-            label=delay_label,
-            color=colour,
-            alpha=0.85,
-            edgecolor="white"
-        )
+        band_x + i * band_width,
+        counts,
+        band_width,
+        label=delay_label,
+        color=colour,
+        alpha=0.85,
+        edgecolor="white"
+    )
     ax3.bar_label(bars, fmt="%.1f", fontsize=8, padding=2)
 
-    ax3.set_xticks(band_x + band_width)
-    ax3.set_xticklabels(
-        [b.replace(" months", "\nmonths") for b in age_bands], fontsize=9
-    )
-    ax3.set_title("WHO Milestone Violations by Age Band", fontsize=12, fontweight="bold")
-    ax3.set_ylabel("Total delay score (0.5 = ambiguous, 1 = confirmed)")
-    ax3.legend(fontsize=8)
+ax3.set_xticks(band_x + band_width)
+ax3.set_xticklabels(
+    [b.replace(" months", "\nmonths") for b in age_bands], fontsize=9
+)
+ax3.set_title("WHO Milestone Violations by Age Band", fontsize=12, fontweight="bold")
+ax3.set_ylabel("Total delay score (0.5 = ambiguous, 1 = confirmed)")
+ax3.legend(fontsize=8)
 
-    save_chart(fig3, "chart3_who_milestones.png")
+save_chart(fig3, "chart3_who_milestones.png")
 
 
 # In[124]:
@@ -1296,98 +1297,88 @@ print("  Saved: chart4_severity_distribution.png")
 
 
 # Prepare income data
-fig5, ax5 = plt.subplots(figsize=(7, 5))
+def make_income_chart(df):
+    fig5, ax5 = plt.subplots(figsize=(7, 5))
 
-if 'income' in df.columns:
-    income_data = df['income'].dropna()
-else:
-    income_data = pd.Series(dtype=float)
+    if 'income' in df.columns:
+        income_data = df['income'].dropna()
+    else:
+        income_data = pd.Series(dtype=float)
 
-income_reported = income_data[income_data > 0]
-n_no_income = (len(df_model) if 'df_model' in globals() else len(df)) - len(income_reported)
+    income_reported = income_data[income_data > 0]
+    n_no_income = len(df) - len(income_reported)
 
-if len(income_reported) > 0:
-    import random as _random
-    _random.seed(42)
-    ax5.boxplot(
-        income_reported, vert=True, patch_artist=True, widths=0.4,
-        medianprops=dict(color="darkorange", linewidth=2.5),
-        boxprops=dict(facecolor="cornflowerblue", alpha=0.6),
-        whiskerprops=dict(color="steelblue", linewidth=1.5),
-        capprops=dict(color="steelblue", linewidth=1.5),
-        flierprops=dict(marker="o", markerfacecolor="tomato", markersize=6, linestyle="none", alpha=0.7),
-    )
-    jitter = [1 + _random.uniform(-0.12, 0.12) for _ in income_reported]
-    ax5.scatter(jitter, income_reported, color="steelblue", alpha=0.5, s=28, zorder=5, label="Participant")
-    med = income_reported.median()
-    q1  = income_reported.quantile(0.25)
-    q3  = income_reported.quantile(0.75)
-    ax5.text(1.28, med, f"Median: KES {med:,.0f}", va="center", fontsize=8.5, color="darkorange")
-    ax5.text(1.28, q1,  f"Q1: KES {q1:,.0f}",     va="center", fontsize=8,   color="steelblue")
-    ax5.text(1.28, q3,  f"Q3: KES {q3:,.0f}",     va="center", fontsize=8,   color="steelblue")
-    ax5.set_title("Monthly Household Income Distribution", fontsize=11, fontweight="bold")
-    ax5.set_ylabel("Monthly Income (KES)")
-    ax5.set_xticks([1])
-    ax5.set_xticklabels([f"Participants who reported income\n(n={len(income_reported)})"], fontsize=9)
-    ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"KES {x:,.0f}"))
-    ax5.legend(fontsize=9, loc="upper right")
-    
-else:
-    ax5.text(0.5, 0.5, "No income data", ha="center", va="center", transform=ax5.transAxes)
-    ax5.set_title("Monthly Household Income (KES)")
+    if len(income_reported) > 0:
+        import random as _random
+        _random.seed(42)
+        ax5.boxplot(
+            income_reported, vert=True, patch_artist=True, widths=0.4,
+            medianprops=dict(color="darkorange", linewidth=2.5),
+            boxprops=dict(facecolor="cornflowerblue", alpha=0.6),
+            whiskerprops=dict(color="steelblue", linewidth=1.5),
+            capprops=dict(color="steelblue", linewidth=1.5),
+            flierprops=dict(marker="o", markerfacecolor="tomato", markersize=6, linestyle="none", alpha=0.7),
+        )
+        jitter = [1 + _random.uniform(-0.12, 0.12) for _ in income_reported]
+        ax5.scatter(jitter, income_reported, color="steelblue", alpha=0.5, s=28, zorder=5, label="Participant")
+        med = income_reported.median()
+        q1  = income_reported.quantile(0.25)
+        q3  = income_reported.quantile(0.75)
+        ax5.text(1.28, med, f"Median: KES {med:,.0f}", va="center", fontsize=8.5, color="darkorange")
+        ax5.text(1.28, q1,  f"Q1: KES {q1:,.0f}",     va="center", fontsize=8,   color="steelblue")
+        ax5.text(1.28, q3,  f"Q3: KES {q3:,.0f}",     va="center", fontsize=8,   color="steelblue")
+        ax5.set_title("Monthly Household Income Distribution", fontsize=11, fontweight="bold")
+        ax5.set_ylabel("Monthly Income (KES)")
+        ax5.set_xticks([1])
+        ax5.set_xticklabels([f"Participants who reported income\n(n={len(income_reported)})"], fontsize=9)
+        ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"KES {x:,.0f}"))
+        ax5.legend(fontsize=9, loc="upper right")
+    else:
+        ax5.text(0.5, 0.5, "No income data", ha="center", va="center", transform=ax5.transAxes)
+        ax5.set_title("Monthly Household Income (KES)")
 
-fig5.tight_layout()
-fig5.savefig("chart5_income_distribution.png", dpi=150, bbox_inches="tight")
-plt.show()
-plt.close(fig5)
-print("  Saved: chart5_income_distribution.png")
+    fig5.tight_layout()
+    fig5.savefig("chart5_income_distribution.png", dpi=150, bbox_inches="tight")
+    plt.show()
+    plt.close(fig5)
+    print("  Saved: chart5_income_distribution.png")
 
 
 # In[ ]:
 
 
-# Caregiver age chart
-if 'caregiver_age' in df.columns:
-    age_data = df['caregiver_age'].dropna()
+# Caregiver age chart and decision tree visualization
+if 'caregiver_age' in df_model.columns:
+    age_data = df_model['caregiver_age'].dropna()
 else:
     age_data = pd.Series(dtype=float)
 
 if len(age_data) > 0:
-    ax = axes[-1, -1] if isinstance(axes, np.ndarray) else axes
-    ax.hist(age_data, bins=8, color="cornflowerblue",
-            edgecolor="white", alpha=0.85)
-    ax.axvline(age_data.median(), color="navy", linestyle="--",
-               linewidth=1.5, label=f"Median: {age_data.median():.0f} yrs")
-    ax.set_title("Caregiver Age Distribution")
-    ax.set_xlabel("Age (years)")
-    ax.set_ylabel("Number of caregivers")
-    ax.legend(fontsize=9)
-    
     # Decision tree visualization
     imputer  = SimpleImputer(strategy="median")
     X_filled = imputer.fit_transform(X)
     viz_tree = DecisionTreeClassifier(
-            max_depth=3, class_weight="balanced", random_state=42
-        )
+        max_depth=3, class_weight="balanced", random_state=42
+    )
     viz_tree.fit(X_filled, y)
     
     fig_tree, ax_tree = plt.subplots(figsize=(16, 7))
     plot_tree(
-            viz_tree,
-            feature_names=list(X.columns),
-            class_names=["Low Risk", "At Risk"],
-            filled=True,
-            rounded=True,
-            fontsize=8,
-            ax=ax_tree,
-            impurity=False,
-            proportion=True
-        )
+        viz_tree,
+        feature_names=list(X.columns),
+        class_names=["Low Risk", "At Risk"],
+        filled=True,
+        rounded=True,
+        fontsize=8,
+        ax=ax_tree,
+        impurity=False,
+        proportion=True
+    )
     ax_tree.set_title(
-            "Decision Tree – Speech Delay Risk Prediction\n"
-            "(WHO Milestone + Behavioural + Socioeconomic Features)",
-            fontsize=12, fontweight="bold"
-        )
+        "Decision Tree – Speech Delay Risk Prediction\n"
+        "(WHO Milestone + Behavioural + Socioeconomic Features)",
+        fontsize=12, fontweight="bold"
+    )
     
     save_chart(fig_tree, "speech_delay_decision_tree.png")
 
@@ -1430,7 +1421,7 @@ def grouped_bar(ax, categories, at_counts, low_counts,
 
     bars_at  = ax.bar(x - bar_width/2, at_counts,  bar_width,
                       label=f"At-Risk (n={n_at})",
-                  color=AT_COLOUR,  alpha=0.85, edgecolor="white")
+                      color=AT_COLOUR,  alpha=0.85, edgecolor="white")
     bars_low = ax.bar(x + bar_width/2, low_counts, bar_width,
                       label=f"Low-Risk (n={n_low})",
                       color=LOW_COLOUR, alpha=0.85, edgecolor="white")
@@ -1453,26 +1444,28 @@ def make_comparative_charts(df_model, at_risk, low_risk):
     # income vs speech delay risk
     fig1, ax1 = plt.subplots(figsize=(8, 5))
 
-at_inc_vals  = at_risk["income"].dropna();  at_inc_vals  = at_inc_vals[at_inc_vals > 0]
-low_inc_vals = low_risk["income"].dropna(); low_inc_vals = low_inc_vals[low_inc_vals > 0]
+    at_inc_vals  = at_risk["income"].dropna()
+    at_inc_vals  = at_inc_vals[at_inc_vals > 0]
+    low_inc_vals = low_risk["income"].dropna()
+    low_inc_vals = low_inc_vals[low_inc_vals > 0]
 
-bp = ax1.boxplot(
-    [at_inc_vals, low_inc_vals], patch_artist=True, widths=0.4,
-    medianprops=dict(color="black", linewidth=2),
-    whiskerprops=dict(linewidth=1.5), capprops=dict(linewidth=1.5),
-    flierprops=dict(marker="o", markersize=5, linestyle="none", alpha=0.6),
-)
-bp["boxes"][0].set_facecolor(AT_COLOUR);  bp["boxes"][0].set_alpha(0.7)
-bp["boxes"][1].set_facecolor(LOW_COLOUR); bp["boxes"][1].set_alpha(0.7)
-ax1.set_xticks([1, 2])
-ax1.set_xticklabels([f"At-Risk (n={len(at_inc_vals)})", f"Low-Risk (n={len(low_inc_vals)})"], fontsize=10)
-ax1.set_ylabel("Monthly Income (KES)")
-ax1.set_title("Income vs Speech Delay Risk\nRaw KES — no standardisation", fontsize=11, fontweight="bold")
-ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"KES {x:,.0f}"))
-ax1.text(0.98, 0.95, "Lower income → higher at-risk proportion",
-         transform=ax1.transAxes, ha="right", va="top", fontsize=8, color="dimgray", style="italic")
+    bp = ax1.boxplot(
+        [at_inc_vals, low_inc_vals], patch_artist=True, widths=0.4,
+        medianprops=dict(color="black", linewidth=2),
+        whiskerprops=dict(linewidth=1.5), capprops=dict(linewidth=1.5),
+        flierprops=dict(marker="o", markersize=5, linestyle="none", alpha=0.6),
+    )
+    bp["boxes"][0].set_facecolor(AT_COLOUR);  bp["boxes"][0].set_alpha(0.7)
+    bp["boxes"][1].set_facecolor(LOW_COLOUR); bp["boxes"][1].set_alpha(0.7)
+    ax1.set_xticks([1, 2])
+    ax1.set_xticklabels([f"At-Risk (n={len(at_inc_vals)})", f"Low-Risk (n={len(low_inc_vals)})"], fontsize=10)
+    ax1.set_ylabel("Monthly Income (KES)")
+    ax1.set_title("Income vs Speech Delay Risk\nRaw KES — no standardisation", fontsize=11, fontweight="bold")
+    ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"KES {x:,.0f}"))
+    ax1.text(0.98, 0.95, "Lower income → higher at-risk proportion",
+             transform=ax1.transAxes, ha="right", va="top", fontsize=8, color="dimgray", style="italic")
 
-save_chart(fig1, "comp1_income_vs_delay.png")
+    save_chart(fig1, "comp1_income_vs_delay.png")
 
 
 # In[59]:
@@ -2048,15 +2041,14 @@ if __name__ == '__main__':
         print("Results summary:")
         print(pd.DataFrame(results).T.sort_values('f1', ascending=False).round(3))
 
-        # Define at-risk and low-risk groups for comparative charts BEFORE using them
-        at_risk = df_model[df_model["speech_delay_label"] == 1]
-        low_risk = df_model[df_model["speech_delay_label"] == 0]
-
         # Define at-risk and low-risk groups for comparative charts
         at_risk = df_model[df_model["speech_delay_label"] == 1]
         low_risk = df_model[df_model["speech_delay_label"] == 0]
 
         make_charts(results, importance_df, X, y, df_model)
+        make_income_chart(df_model)
+        make_comparative_charts(df_model, at_risk, low_risk)
+        make_income_chart(df_model)
         make_comparative_charts(df_model, at_risk, low_risk)
 
         # Train final model on all data for web interface use
