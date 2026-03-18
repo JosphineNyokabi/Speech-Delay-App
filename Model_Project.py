@@ -1344,43 +1344,7 @@ def make_income_chart(df):
     print("  Saved: chart5_income_distribution.png")
 
 
-# In[ ]:
 
-
-# Caregiver age chart and decision tree visualization
-if 'caregiver_age' in df_model.columns:
-    age_data = df_model['caregiver_age'].dropna()
-else:
-    age_data = pd.Series(dtype=float)
-
-if len(age_data) > 0:
-    # Decision tree visualization
-    imputer  = SimpleImputer(strategy="median")
-    X_filled = imputer.fit_transform(X)
-    viz_tree = DecisionTreeClassifier(
-        max_depth=3, class_weight="balanced", random_state=42
-    )
-    viz_tree.fit(X_filled, y)
-    
-    fig_tree, ax_tree = plt.subplots(figsize=(16, 7))
-    plot_tree(
-        viz_tree,
-        feature_names=list(X.columns),
-        class_names=["Low Risk", "At Risk"],
-        filled=True,
-        rounded=True,
-        fontsize=8,
-        ax=ax_tree,
-        impurity=False,
-        proportion=True
-    )
-    ax_tree.set_title(
-        "Decision Tree – Speech Delay Risk Prediction\n"
-        "(WHO Milestone + Behavioural + Socioeconomic Features)",
-        fontsize=12, fontweight="bold"
-    )
-    
-    save_chart(fig_tree, "speech_delay_decision_tree.png")
 
 
 # In[57]:
