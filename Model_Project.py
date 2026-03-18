@@ -61,7 +61,7 @@ BACKFILL_COUNTIES = ['Nairobi', 'Kiambu', 'Machakos', 'Kajiado']
 WHO_MILESTONES = {
     # 12-17 months
     (12, 17): {
-        'min_words'     : 1,      # Child should say at least 1 meaningful word
+        'min_words'     : 3,      # WHO: at least 3 meaningful words by 12-17 months
         'combines_words': False,  # Two-word phrases are NOT yet expected
         'responds_to_name': True, # Should respond when called by name
         'description': (
@@ -73,7 +73,7 @@ WHO_MILESTONES = {
     # 18-23 months
     (18, 23): {
         'min_words'     : 10,     # WHO: at least 10 words by 18 months
-        'combines_words': False,  # Still not expected to combine words yet
+        'combines_words': True,   # WHO: two-word combinations expected by 18-24 months
         'responds_to_name': True,
         'description': (
             "18–23 months: Child should use at least 10 words. "
@@ -863,7 +863,7 @@ def engineer_label(df):
     )
     # Final binary label
     df['speech_delay_label'] = (
-        (df['milestone_delay_count'] >= 0.5) |
+        (df['milestone_delay_count'] >= 1.0) |
         (df['behavioural_flag_count'] >= 2)
     ).astype(int)
 
@@ -1863,6 +1863,14 @@ def predict_new_child(trained_model, fitted_imputer, feature_names, child_data):
 
     # Predict probability of being at risk
     probability = trained_model.predict_proba(row_imp)[0][1]
+
+    # If only a minor single milestone delay with no behavioural flags, cap at MODERATE
+    minor_gap = (
+        milestone_flags["milestone_delay_count"] < 1.0 and
+        behavioural_flags["total_flags"] == 0
+    )
+    if minor_gap:
+        probability = min(probability, 0.59)
 
     if probability >= 0.60:
         risk_level = "HIGH RISK"
