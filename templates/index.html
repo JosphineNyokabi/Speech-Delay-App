@@ -230,7 +230,7 @@
                 <p id="probability" style="margin:0; font-size:14px; font-weight:600; opacity:0.9;"></p>
             </div>
 
-            <h3 style="margin-top:4px;">WHO Milestone Checks</h3>
+            <h3 style="margin-top:4px;">Milestone Checks</h3>
             <p id="vocab-status"></p>
             <p id="combine-status"></p>
             <p id="respond-status"></p>
@@ -269,10 +269,10 @@
                     </h4>
                     <div id="explanation-flags"></div>
 
-                    <!-- WHO milestone detail -->
+                    <!-- milestone detail -->
                     <h4 style="font-size:13px; color:#1a3a6e;
                                margin-top:14px; margin-bottom:8px;">
-                        WHO Milestone Assessment:
+                        Milestone Assessment:
                     </h4>
                     <div id="explanation-milestones"></div>
 
@@ -292,7 +292,7 @@
                         This prediction was made by a Random Forest machine
                         learning model trained on data from 41 children aged
                         12–36 months in Nairobi County. The model weighs
-                        WHO developmental milestones, caregiver behaviour,
+                        developmental milestones, caregiver behaviour,
                         screen exposure, and socioeconomic factors to estimate
                         the probability of speech delay. It is a screening
                         tool only and does not replace clinical assessment.
@@ -341,7 +341,7 @@
         if (result.milestone_flags.milestone_word_delay) {
             flags.push({
                 icon: "🔴",
-                text: "Vocabulary delay detected — your child's word count is below the WHO expected level for their age."
+                text: "Vocabulary delay detected — your child's word count is below the recommended level for their age."
             });
         }
         if (result.milestone_flags.milestone_combine_delay) {
@@ -359,7 +359,7 @@
         if (result.screen_exceeds_who) {
             flags.push({
                 icon: "🟠",
-                text: `Screen time of ${result.screen_avg_hrs} hrs/day exceeds WHO recommended limits for this age group.`
+                text: `Screen time of ${result.screen_avg_hrs} hrs/day exceeds recommended limits for this age group.`
             });
         }
         if (result.behavioural_flags && result.behavioural_flags.flag_low_verbal) {
@@ -396,7 +396,7 @@
              </div>`
         ).join("");
 
-        // ── MILESTONES — WHO age band detail ──
+        // ── MILESTONES — age band detail ──
         const msEl  = document.getElementById("explanation-milestones");
         const band  = result.milestone_band  || "—";
         const minW  = result.who_minimum     || "—";
@@ -407,7 +407,7 @@
                         font-size:12px; line-height:1.8; color:#444;
                         border:1px solid #ddd;">
                 <strong>Age band:</strong> ${band}<br>
-                <strong>WHO minimum vocabulary:</strong> ${minW} words<br>
+                <strong>Recommended minimum vocabulary:</strong> ${minW} words<br>
                 <strong>Vocabulary status:</strong>
                     ${result.milestone_flags.word_status || "—"}<br>
                 <strong>Word combining:</strong>
@@ -427,8 +427,8 @@
                         font-size:12px; line-height:1.8; color:#444;
                         border:1px solid #ddd;">
                 <strong>Average screen time:</strong> ${avg} hrs/day<br>
-                <strong>WHO limit (under 3 yrs):</strong> 1 hr/day<br>
-                <strong>Exceeds WHO limit:</strong>
+                <strong>Developmental limit (under 3 yrs):</strong> 1 hr/day<br>
+                <strong>Exceeds developmental limit:</strong>
                     <span style="color:${exceeds ? '#c0392b' : '#27ae60'}; font-weight:600;">
                         ${exceeds ? "Yes" : "No"}
                     </span>
